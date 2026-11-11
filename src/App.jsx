@@ -475,62 +475,59 @@ export default function App() {
       return
     }
 
-    // cd bosh sahifaga
-    if (trimmed === 'cd' || trimmed === 'cd ~' || trimmed === 'cd /' || trimmed === 'cd /root' || trimmed === 'cd home' || trimmed === '~') {
-      setCur('home')
-      addHistory([echoLine])
-      return
-    }
+    // cd [dir] (about, about/, projects, projects/, resume, contact, ~, .., va h.k.)
+    if (trimmed.startsWith('cd ') || trimmed === 'cd') {
+      const rawTarget = trimmed.startsWith('cd ') ? trimmed.slice(3).trim() : ''
+      const target = rawTarget.replace(/^\.\//, '').replace(/^~\//, '').replace(/\/+$/, '')
 
-    // cd ..
-    if (trimmed === 'cd ..' || trimmed === 'cd ../') {
-      if (cur !== 'home') {
+      if (!target || target === '~' || target === '/' || target === 'home' || target === '/root') {
         setCur('home')
         addHistory([echoLine])
-      } else {
-        addHistory([
-          echoLine,
-          <div key={Date.now() + 1} className="term-msg d">~ (bosh sahifadasiz)</div>,
-        ])
+        return
       }
-      return
-    }
 
-    // cd about
-    if (trimmed === 'cd about' || trimmed === 'cd ./about' || trimmed === 'cd ~/about') {
-      setCur('about')
-      addHistory([echoLine])
-      return
-    }
+      if (target === '..') {
+        if (cur !== 'home') {
+          setCur('home')
+          addHistory([echoLine])
+        } else {
+          addHistory([
+            echoLine,
+            <div key={Date.now() + 1} className="term-msg d">~ (bosh sahifadasiz)</div>,
+          ])
+        }
+        return
+      }
 
-    // cd projects
-    if (trimmed === 'cd projects' || trimmed === 'cd ./projects' || trimmed === 'cd ~/projects') {
-      setCur('projects')
-      addHistory([echoLine])
-      return
-    }
+      if (target === 'about') {
+        setCur('about')
+        addHistory([echoLine])
+        return
+      }
 
-    // cd resume
-    if (trimmed === 'cd resume' || trimmed === 'cd ./resume' || trimmed === 'cd ~/resume') {
-      setCur('resume')
-      addHistory([echoLine])
-      return
-    }
+      if (target === 'projects') {
+        setCur('projects')
+        addHistory([echoLine])
+        return
+      }
 
-    // cd contact
-    if (trimmed === 'cd contact' || trimmed === 'cd ./contact' || trimmed === 'cd ~/contact') {
-      setCur('contact')
-      addHistory([echoLine])
-      return
-    }
+      if (target === 'resume') {
+        setCur('resume')
+        addHistory([echoLine])
+        return
+      }
 
-    // cd xato
-    if (trimmed.startsWith('cd ')) {
-      const dir = trimmed.slice(3).trim()
+      if (target === 'contact') {
+        setCur('contact')
+        addHistory([echoLine])
+        return
+      }
+
+      // Noto'g'ri papka
       addHistory([
         echoLine,
         <div key={Date.now() + 1} className="term-msg">
-          bash: cd: {dir}: No such file or directory
+          bash: cd: {rawTarget}: No such file or directory
         </div>,
       ])
       return
@@ -697,22 +694,22 @@ export default function App() {
     }
 
     // Tezkor sahifa chaqirish (about / projects / resume / contact) — faqat cd, output emas
-    if (trimmed === 'about' || trimmed === './about') {
+    if (trimmed === 'about' || trimmed === './about' || trimmed === 'about/') {
       setCur('about')
       addHistory([echoLine])
       return
     }
-    if (trimmed === 'projects' || trimmed === './projects') {
+    if (trimmed === 'projects' || trimmed === './projects' || trimmed === 'projects/') {
       setCur('projects')
       addHistory([echoLine])
       return
     }
-    if (trimmed === 'resume' || trimmed === './resume') {
+    if (trimmed === 'resume' || trimmed === './resume' || trimmed === 'resume/') {
       setCur('resume')
       addHistory([echoLine])
       return
     }
-    if (trimmed === 'contact' || trimmed === './contact') {
+    if (trimmed === 'contact' || trimmed === './contact' || trimmed === 'contact/') {
       setCur('contact')
       addHistory([echoLine])
       return
@@ -792,6 +789,98 @@ export default function App() {
     // exit / logout
     if (trimmed === 'exit' || trimmed === 'logout') {
       addHistory([echoLine, <div key={Date.now() + 1} className="term-msg d">logout — sessiya yopilmaydi (bu brauzer :)</div>])
+      return
+    }
+
+    // rm / rmdir / mkdir / touch / sudo / vim / reboot hazil javoblari
+    if (trimmed.startsWith('rm -rf') || trimmed.startsWith('rm -r') || trimmed === 'rm') {
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          <span className="k">rm:</span> ruxsat berilmadi: bu production server, portfolioni o‘chirib bo‘lmaydi :)
+        </div>,
+      ])
+      return
+    }
+
+    if (trimmed.startsWith('rm ') || trimmed === 'rm') {
+      const target = trimmed.startsWith('rm ') ? trimmed.slice(3).trim() : ''
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          <span className="k">rm:</span> cannot remove &apos;{target || 'file'}&apos;: Read-only file system (faylni o‘chirish taqiqlangan :)
+        </div>,
+      ])
+      return
+    }
+
+    if (trimmed.startsWith('mkdir') || trimmed === 'mkdir') {
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          <span className="k">mkdir:</span> cannot create directory: Read-only file system (papka yaratish cheklangan :)
+        </div>,
+      ])
+      return
+    }
+
+    if (trimmed.startsWith('rmdir') || trimmed === 'rmdir') {
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          <span className="k">rmdir:</span> failed to remove: Read-only file system (papkalarni o‘chirib bo‘lmaydi :)
+        </div>,
+      ])
+      return
+    }
+
+    if (trimmed.startsWith('touch ') || trimmed === 'touch') {
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          <span className="k">touch:</span> cannot touch: Read-only file system (fayl yaratish cheklangan :)
+        </div>,
+      ])
+      return
+    }
+
+    if (trimmed.startsWith('sudo')) {
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          <span className="u">root@alijonov:</span> siz allaqachon root huquqidasiz, sudo kerak emas :)
+        </div>,
+      ])
+      return
+    }
+
+    if (trimmed.startsWith('nano') || trimmed.startsWith('vim') || trimmed.startsWith('vi ') || trimmed === 'vi' || trimmed === 'vim') {
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg d">
+          tahrirlash cheklangan (read-only portfolio). Chiqish uchun &apos;:q!&apos; shart emas :)
+        </div>,
+      ])
+      return
+    }
+
+    if (trimmed === 'reboot' || trimmed === 'shutdown' || trimmed.startsWith('shutdown') || trimmed === 'poweroff' || trimmed === 'init 0') {
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          <span className="k">shutdown:</span> server 24/7 onlayn rejimda ishlaydi, o‘chirish taqiqlangan :)
+        </div>,
+      ])
+      return
+    }
+
+    if (trimmed.startsWith('kill') || trimmed.startsWith('pkill')) {
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          <span className="k">kill:</span> jarayonlarni to‘xtatish cheklangan :)
+        </div>,
+      ])
       return
     }
 
@@ -982,11 +1071,12 @@ export default function App() {
 
       // 1) cd <dir>
       if (val.startsWith('cd ')) {
-        const prefix = val.slice(3).trimStart()
+        const prefix = val.slice(3).trimStart().replace(/\/+$/, '')
         const pool = ['..', '~', ...dirs]
         const match = pool.find((d) => d.toLowerCase().startsWith(prefix.toLowerCase()))
         if (match) {
-          setInputVal(`cd ${match}`)
+          const suffix = (match === '..' || match === '~') ? '' : '/'
+          setInputVal(`cd ${match}${suffix}`)
         }
         return
       }
@@ -1001,9 +1091,10 @@ export default function App() {
         return
       }
 
-      // 3) Boshqa alohida fayl, papka yoki buyruqlar (masalan: R -> README.md, a -> about.md, he -> help)
-      const commands = ['help', 'clear', 'send-mail', 'pwd', 'ls', 'cd', 'cat']
-      const pool = [...files, ...dirs, ...commands]
+      // 3) Boshqa alohida fayl, papka yoki buyruqlar (masalan: R -> README.md, a -> about/, he -> help)
+      const commands = ['help', 'clear', 'send-mail', 'pwd', 'ls', 'cd', 'cat', 'whoami', 'uname', 'uptime', 'date', 'history']
+      const dirsWithSlash = dirs.map((d) => `${d}/`)
+      const pool = [...files, ...dirsWithSlash, ...commands]
       const match = pool.find((item) => item.toLowerCase().startsWith(trimmed.toLowerCase()))
       if (match) {
         setInputVal(match)
