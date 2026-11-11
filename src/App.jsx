@@ -94,7 +94,7 @@ function outputs(go) {
       <div>Farg‘onalik backend dasturchiman. Dasturlashni 2021-yilda boshlaganman, shundan beri Telegram botlardan tortib katta tizimlargacha ishlab keldim. Toza kod va oddiy yechimlarni yoqtiraman.</div>,
       <div className="hr" />,
       <div className="d">## nima bilan shug‘ullanaman</div>,
-      <div>• Raqamli monitoring tizimlari va API ishlab chiqish<br />• Murakkab xatolarni topib, tizimni barqaror ushlash<br />• Docker bilan loyihalarni ishga tushirish<br />• Agile/Scrum jamoasida ishlash</div>,
+      <div>• Yuqori yuklamaga chidamli backend tizimlari va RESTful API ishlab chiqish<br />• Murakkab xatolarni chuqur tahlil qilish (debugging) va tizim barqarorligini ta’minlash<br />• Docker yordamida loyihalarni konteynerlashtirish va serverga sozlash (deploy)<br />• Agile/Scrum muhitida jamoa bilan hamkorlikda toza arxitektura qurish</div>,
       <div className="hr" />,
       <div className="d">## texnologiyalar</div>,
       <Groups data={ALL} />,
