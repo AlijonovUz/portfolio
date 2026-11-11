@@ -47,7 +47,56 @@ const EDU = {
 }
 const LANGS = [['O‘zbek tili', 'ona tili'], ['Ingliz tili', 'A2'], ['Rus tili', 'A2']]
 const RESUME_PDF = '/resume.pdf' // public/resume.pdf
+
+// Loyihalar (Projects)
+const PROJECTS = [
+  {
+    slug: 'meetly',
+    name: 'Meetly',
+    headline: 'Onlayn video va audio uchrashuvlar platformasi',
+    desc: 'Konferensiya davomida tasvir va ovoz qotmasligi, kechikishlar minimal bo‘lishi uchun WebRTC hamda zamonaviy SFU (Selective Forwarding Unit) arxitekturasi asosida qurilgan. Video/audio oqimlarni har bir ishtirokchiga alohida optimallab, yuqori tezlikda tarqatib beradi.',
+    note: 'Muloqot qulayligi va to‘liq imkoniyatlar uchun ayni bosqichda faqat kompyuter (desktop) brauzerlarida ishlaydi.',
+    stack: ['WebRTC', 'SFU Architecture', 'WebSockets', 'Python', 'FastAPI', 'Docker'],
+    url: 'https://meetly.uz',
+    status: 'production · online',
+    access: 'private repo',
+  },
+  {
+    slug: 'authly',
+    name: 'Authly',
+    headline: 'Yagona identifikatsiya va OAuth SSO tizimi',
+    desc: 'Loyihalarni bitta ekotizimga birlashtirish va xavfsiz kirishni ta’minlash uchun yozilgan. Kriptografik tokenlar va xavfsiz avtorizatsiya standartlari asosida ishlaydi. O‘zingizning tashqi loyihalaringizga ham avtorizatsiya mexanizmi sifatida bemalol integratsiya qila olasiz.',
+    note: 'Yagona SSO, OAuth 2.0 / OpenID Connect standartlari va xavfsiz tokenlar.',
+    stack: ['OAuth 2.0', 'OpenID Connect', 'JWT', 'Python', 'FastAPI', 'PostgreSQL', 'Docker'],
+    url: 'https://authly.uz',
+    status: 'production · online',
+    access: 'private repo',
+  },
+]
 /* ================================================== */
+
+function singleProjectOutput(slug) {
+  const p = PROJECTS.find((x) => x.slug === slug)
+  if (!p) return null
+  return (
+    <div className="job" key={p.slug} style={{ margin: '8px 0' }}>
+      <div>
+        <span className="h" style={{ fontSize: 16, fontWeight: 700 }}>{p.name}</span>
+        <span className="d"> — {p.headline}</span>
+      </div>
+      <div style={{ marginTop: 6, lineHeight: 1.6 }}>{p.desc}</div>
+      {p.note && <div className="d" style={{ marginTop: 4 }}>• {p.note}</div>}
+      <div style={{ marginTop: 8 }}>
+        <span className="d">stack: </span>
+        {p.stack.map((t) => <span className="tag" key={t}>{t}</span>)}
+      </div>
+      <div style={{ marginTop: 8, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+        <span>havola: → <a href={p.url} target="_blank" rel="noreferrer">{p.url}</a></span>
+        <span className="d">status: <span className="u">{p.status}</span> ({p.access})</span>
+      </div>
+    </div>
+  )
+}
 
 const TUX = ['    .--.', '   |o_o |', '   |:_/ |', '  //   \\ \\', ' (|     | )', "/'\\_   _/'\\", '\\___)=(___/'].join('\n')
 
@@ -99,8 +148,35 @@ function outputs(go) {
       </div>,
       <div className="cta" key="cta">
         <button onClick={() => go('about')}>./about</button>
+        <button onClick={() => go('projects')}>./projects</button>
         <button onClick={() => go('resume')}>./resume</button>
         <button onClick={() => go('contact')}>./contact</button>
+      </div>,
+    ],
+    projects: [
+      <div className="k" key="h"># Loyihalar (Projects)</div>,
+      <div className="d" key="d1">## ishlab chiqilgan va production&apos;da ishlayotgan platformalar</div>,
+      ...PROJECTS.map((p) => (
+        <div className="job" key={p.slug} style={{ marginBottom: 18 }}>
+          <div>
+            <span className="h" style={{ fontSize: 16, fontWeight: 700 }}>{p.name}</span>
+            <span className="d"> — {p.headline}</span>
+          </div>
+          <div style={{ marginTop: 6, lineHeight: 1.6 }}>{p.desc}</div>
+          {p.note && <div className="d" style={{ marginTop: 4 }}>• {p.note}</div>}
+          <div style={{ marginTop: 8 }}>
+            <span className="d">stack: </span>
+            {p.stack.map((t) => <span className="tag" key={t}>{t}</span>)}
+          </div>
+          <div style={{ marginTop: 8, display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            <span>havola: → <a href={p.url} target="_blank" rel="noreferrer">{p.url}</a></span>
+            <span className="d">status: <span className="u">{p.status}</span> ({p.access})</span>
+          </div>
+        </div>
+      )),
+      <div className="cta" key="cta">
+        <button onClick={() => go('contact')}>./contact</button>
+        <button onClick={() => go('resume')}>./resume</button>
       </div>,
     ],
     about: [
@@ -302,13 +378,17 @@ export default function App() {
         {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cd [dir]</span><span className="h">pwd</span><br />
         {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cat &lt;file.md&gt;</span><span className="h">ls [-la]</span><br />
         {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>send-mail [options]</span><span className="h">clear</span><br />
+        {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>whoami / uname / date</span><span className="h">history</span><br />
         {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cd ..</span><span className="h">help</span><br /><br />
         <span className="d">Directories:</span><br />
-        {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>about/</span><span className="u">resume/</span><br />
-        {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>contact/</span><span className="u">~ (home)</span><br /><br />
+        {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>about/</span><span className="u">projects/</span><br />
+        {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>resume/</span><span className="u">contact/</span><br />
+        {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>~ (home)</span><br /><br />
         <span className="d">Files:</span><br />
         {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>README.md</span><span>about.md</span><br />
-        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>resume.md</span><span>contact.md</span>
+        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>projects.md</span><span>resume.md</span><br />
+        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>meetly.md</span><span>authly.md</span><br />
+        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>contact.md</span><span>resume.pdf</span>
       </div>,
     ])
   }
@@ -338,6 +418,7 @@ export default function App() {
           <div key={Date.now() + 1} className="term-msg">
             <span className="u" style={{ marginRight: 24 }}>README.md</span>
             <span className="h" style={{ marginRight: 24, fontWeight: 700 }}>about/</span>
+            <span className="h" style={{ marginRight: 24, fontWeight: 700 }}>projects/</span>
             <span className="h" style={{ marginRight: 24, fontWeight: 700 }}>resume/</span>
             <span className="h" style={{ fontWeight: 700 }}>contact/</span>
           </div>
@@ -346,6 +427,14 @@ export default function App() {
         lsContent = (
           <div key={Date.now() + 1} className="term-msg">
             <span>about.md</span>
+          </div>
+        )
+      } else if (cur === 'projects') {
+        lsContent = (
+          <div key={Date.now() + 1} className="term-msg">
+            <span style={{ marginRight: 24 }}>projects.md</span>
+            <span style={{ marginRight: 24 }}>meetly.md</span>
+            <span>authly.md</span>
           </div>
         )
       } else if (cur === 'resume') {
@@ -401,6 +490,13 @@ export default function App() {
       return
     }
 
+    // cd projects
+    if (trimmed === 'cd projects' || trimmed === 'cd ./projects' || trimmed === 'cd ~/projects') {
+      setCur('projects')
+      addHistory([echoLine])
+      return
+    }
+
     // cd resume
     if (trimmed === 'cd resume' || trimmed === 'cd ./resume' || trimmed === 'cd ~/resume') {
       setCur('resume')
@@ -441,6 +537,66 @@ export default function App() {
           echoLine,
           <div key={Date.now() + 1} className="term-msg">
             cat: about.md: No such file or directory. (<span className="h">cd about</span> yoki <span className="h">cat about/about.md</span> qiling)
+          </div>,
+        ])
+      }
+      return
+    }
+
+    // projects.md / cat projects.md
+    if (trimmed === 'cat projects.md' || trimmed === 'projects.md' || trimmed === './projects.md' || trimmed === 'cat projects/projects.md') {
+      if (cur === 'projects' || trimmed === 'cat projects/projects.md') {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="o">
+            {outputs(goTo)['projects']}
+          </div>,
+        ])
+      } else {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            cat: projects.md: No such file or directory. (<span className="h">cd projects</span> yoki <span className="h">cat projects/projects.md</span> qiling)
+          </div>,
+        ])
+      }
+      return
+    }
+
+    // meetly.md / cat meetly.md
+    if (trimmed === 'cat meetly.md' || trimmed === 'meetly.md' || trimmed === './meetly.md' || trimmed === 'cat projects/meetly.md') {
+      if (cur === 'projects' || trimmed === 'cat projects/meetly.md') {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="o">
+            {singleProjectOutput('meetly')}
+          </div>,
+        ])
+      } else {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            cat: meetly.md: No such file or directory. (<span className="h">cd projects</span> qiling)
+          </div>,
+        ])
+      }
+      return
+    }
+
+    // authly.md / cat authly.md
+    if (trimmed === 'cat authly.md' || trimmed === 'authly.md' || trimmed === './authly.md' || trimmed === 'cat projects/authly.md') {
+      if (cur === 'projects' || trimmed === 'cat projects/authly.md') {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="o">
+            {singleProjectOutput('authly')}
+          </div>,
+        ])
+      } else {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            cat: authly.md: No such file or directory. (<span className="h">cd projects</span> qiling)
           </div>,
         ])
       }
@@ -507,9 +663,14 @@ export default function App() {
       return
     }
 
-    // Tezkor sahifa chaqirish (about / resume / contact) — faqat cd, output emas
+    // Tezkor sahifa chaqirish (about / projects / resume / contact) — faqat cd, output emas
     if (trimmed === 'about' || trimmed === './about') {
       setCur('about')
+      addHistory([echoLine])
+      return
+    }
+    if (trimmed === 'projects' || trimmed === './projects') {
+      setCur('projects')
       addHistory([echoLine])
       return
     }
@@ -770,11 +931,14 @@ export default function App() {
       let dirs = []
       let files = []
       if (cur === 'home') {
-        dirs = ['about', 'resume', 'contact']
-        files = ['README.md', 'about.md', 'resume.md', 'contact.md']
+        dirs = ['about', 'projects', 'resume', 'contact']
+        files = ['README.md', 'about.md', 'projects.md', 'meetly.md', 'authly.md', 'resume.md', 'contact.md']
       } else if (cur === 'about') {
         dirs = []
         files = ['about.md']
+      } else if (cur === 'projects') {
+        dirs = []
+        files = ['projects.md', 'meetly.md', 'authly.md']
       } else if (cur === 'resume') {
         dirs = []
         files = ['resume.md', 'resume.pdf']
@@ -820,7 +984,7 @@ export default function App() {
       <div className="panel">
         <span className="l"><span style={{ color: 'var(--acc2)', marginRight: 6 }}>&gt;_</span>alijonov.uz</span>
         <nav>
-          {[['home', '~'], ['about', 'about'], ['resume', 'resume'], ['contact', 'contact']].map(([k, l]) => (
+          {[['home', '~'], ['about', 'about'], ['projects', 'projects'], ['resume', 'resume'], ['contact', 'contact']].map(([k, l]) => (
             <button key={k} className={cur === k ? 'on' : ''} onClick={() => goTo(k)}>{l}</button>
           ))}
         </nav>
