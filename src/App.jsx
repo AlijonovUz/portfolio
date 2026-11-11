@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 
 /* ====== MA'LUMOTLARNI SHU YERDA O'ZGARTIRING ====== */
 const LINKS = [
@@ -50,14 +50,19 @@ const RESUME_PDF = '/resume.pdf' // public/resume.pdf
 /* ================================================== */
 
 const TUX = ['    .--.', '   |o_o |', '   |:_/ |', '  //   \\ \\', ' (|     | )', "/'\\_   _/'\\", '\\___)=(___/'].join('\n')
-const CMD = { neofetch: 'neofetch', about: 'cat about.md', resume: 'cat resume.md', contact: 'cat contact.txt' }
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
-const Prompt = () => (
-  <>
-    <span className="u">root@alijonov</span><span className="d">:</span><span className="h">~</span><span className="d"># </span>
-  </>
-)
+const Prompt = ({ path = '~' }) => {
+  const p = path === 'home' || path === 'neofetch' || path === '~' ? '~' : `~/${path}`
+  return (
+    <span style={{ whiteSpace: 'nowrap', userSelect: 'none' }}>
+      <span className="u">root@alijonov</span>
+      <span className="d">:</span>
+      <span className="h">{p}</span>
+      <span className="d">#&nbsp;</span>
+    </span>
+  )
+}
+
 const Groups = ({ data }) => (
   <div>
     {data.map(([k, list]) => (
@@ -69,10 +74,20 @@ const Groups = ({ data }) => (
   </div>
 )
 
+function parseCliArgs(text) {
+  const tokens = []
+  const re = /[^\s"']+|"([^"]*)"|'([^']*)'/g
+  let m
+  while ((m = re.exec(text)) !== null) {
+    tokens.push(m[1] !== undefined ? m[1] : (m[2] !== undefined ? m[2] : m[0]))
+  }
+  return tokens
+}
+
 function outputs(go) {
   return {
-    neofetch: [
-      <div className="nf">
+    home: [
+      <div className="nf" key="nf">
         <pre>{TUX}</pre>
         <div style={{ whiteSpace: 'normal' }}>
           <div className="row"><span className="u">root</span><span className="d">@</span><span className="u">alijonov.uz</span></div>
@@ -82,75 +97,90 @@ function outputs(go) {
           ))}
         </div>
       </div>,
-      <div className="cta">
+      <div className="cta" key="cta">
         <button onClick={() => go('about')}>./about</button>
         <button onClick={() => go('resume')}>./resume</button>
         <button onClick={() => go('contact')}>./contact</button>
       </div>,
     ],
     about: [
-      <div className="k"># Abdulbosit Alijonov</div>,
-      <div className="d">## kim ekanim</div>,
-      <div>Farg‘onalik backend dasturchiman. Dasturlashni 2021-yilda boshlaganman, shundan beri Telegram botlardan tortib katta tizimlargacha ishlab keldim. Toza kod va oddiy yechimlarni yoqtiraman.</div>,
-      <div className="hr" />,
-      <div className="d">## nima bilan shug‘ullanaman</div>,
-      <div>• Yuqori yuklamaga chidamli backend tizimlari va RESTful API ishlab chiqish<br />• Murakkab xatolarni chuqur tahlil qilish (debugging) va tizim barqarorligini ta’minlash<br />• Docker yordamida loyihalarni konteynerlashtirish va serverga sozlash (deploy)<br />• Agile/Scrum muhitida jamoa bilan hamkorlikda toza arxitektura qurish</div>,
-      <div className="hr" />,
-      <div className="d">## texnologiyalar</div>,
-      <Groups data={ALL} />,
+      <div className="k" key="h"># Abdulbosit Alijonov</div>,
+      <div className="d" key="d1">## kim ekanim</div>,
+      <div key="bio">Farg‘onalik backend dasturchiman. Dasturlashni 2021-yilda boshlaganman, shundan beri Telegram botlardan tortib katta tizimlargacha ishlab keldim. Toza kod va oddiy yechimlarni yoqtiraman.</div>,
+      <div className="hr" key="hr1" />,
+      <div className="d" key="d2">## nima bilan shug‘ullanaman</div>,
+      <div key="act">• Yuqori yuklamaga chidamli backend tizimlari va RESTful API ishlab chiqish<br />• Murakkab xatolarni chuqur tahlil qilish (debugging) va tizim barqarorligini ta’minlash<br />• Docker yordamida loyihalarni konteynerlashtirish va serverga sozlash (deploy)<br />• Agile/Scrum muhitida jamoa bilan hamkorlikda toza arxitektura qurish</div>,
+      <div className="hr" key="hr2" />,
+      <div className="d" key="d3">## texnologiyalar</div>,
+      <Groups data={ALL} key="all" />,
     ],
     resume: [
-      <div className="k"># Resume</div>,
-      <div className="d">## asosiy ko‘nikmalar</div>,
-      <Groups data={MAIN} />,
-      <div className="hr" />,
-      <div className="d">## tajriba</div>,
+      <div className="k" key="h"># Resume</div>,
+      <div className="d" key="d1">## asosiy ko‘nikmalar</div>,
+      <Groups data={MAIN} key="main" />,
+      <div className="hr" key="hr1" />,
+      <div className="d" key="d2">## tajriba</div>,
       ...JOBS.map(([t, w, items]) => (
-        <div className="job"><span className="h">{t}</span><br /><span className="d">{w}</span>{items.map((x) => <div key={x}>• {x}</div>)}</div>
+        <div className="job" key={t}><span className="h">{t}</span><br /><span className="d">{w}</span>{items.map((x) => <div key={x}>• {x}</div>)}</div>
       )),
-      <div className="hr" />,
-      <div className="d">## ta’lim</div>,
-      <div className="job"><span className="h">{EDU.title}</span><br /><span className="d">{EDU.where}</span>{EDU.lines.map((x) => <div key={x}>• {x}</div>)}</div>,
-      <div className="hr" />,
-      <div className="d">## tillar</div>,
-      <div>{LANGS.map(([a, b]) => <div className="row" key={a}>• {a} <span className="d">— {b}</span></div>)}</div>,
-      <div className="cta">
-        <button onClick={() => window.open(RESUME_PDF, '_blank')}>⬇ resume.pdf</button>
+      <div className="hr" key="hr2" />,
+      <div className="d" key="d3">## ta’lim</div>,
+      <div className="job" key="edu"><span className="h">{EDU.title}</span><br /><span className="d">{EDU.where}</span>{EDU.lines.map((x) => <div key={x}>• {x}</div>)}</div>,
+      <div className="hr" key="hr3" />,
+      <div className="d" key="d4">## tillar</div>,
+      <div key="langs">{LANGS.map(([a, b]) => <div className="row" key={a}>• {a} <span className="d">— {b}</span></div>)}</div>,
+      <div className="cta" key="cta">
+        <button onClick={() => window.open(RESUME_PDF, '_blank')}>resume.pdf</button>
         <button onClick={() => go('contact')}>./contact</button>
       </div>,
     ],
     contact: [
-      <div className="k"># Aloqa</div>,
+      <div className="k" key="h"># Aloqa</div>,
       ...LINKS.map(([k, label, url]) => (
         <div className="grp" key={k}><span className="h">{k}</span><span>→ <a href={url} target="_blank" rel="noreferrer">{label}</a></span></div>
       )),
-      <div className="grp"><span className="h">manzil</span><span>→ {LOCATION}</span></div>,
-      <div className="d" style={{ marginTop: 10 }}>Loyiha yoki hamkorlik bo‘lsa, yozing — javob beraman.</div>,
+      <div className="grp" key="loc"><span className="h">manzil</span><span>→ {LOCATION}</span></div>,
+      <div className="d" key="note" style={{ marginTop: 10 }}>Loyiha yoki hamkorlik bo‘lsa, yozing — javob beraman.</div>,
+      <div className="hr" key="hr" />,
+      <div className="d" key="h_mail">## xabar yuborish</div>,
+      <div key="mail_desc" style={{ marginTop: 6, lineHeight: 1.6 }}>
+        Terminal orqali to‘g‘ridan-to‘g‘ri email yuborish:<br />
+        • Interaktiv rejim: <span className="h">send-mail</span><br />
+        • Parametrlar bilan: <span className="h">send-mail --help</span>
+      </div>,
     ],
   }
 }
 
 export default function App() {
-  const [cur, setCur] = useState('neofetch')
-  const [typed, setTyped] = useState('')
-  const [done, setDone] = useState(false)
+  const [cur, setCur] = useState('home')
   const [clock, setClock] = useState('')
+  const [initialCleared, setInitialCleared] = useState(false)
+
+  // Terminal buyruqlar va xabarlar ro'yxati
+  const [history, setHistory] = useState([])
+  const [wizard, setWizard] = useState(null)
+  const [inputVal, setInputVal] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const inputRef = useRef(null)
+  const termRef = useRef(null)
+
+  const scrollToBottom = () => {
+    if (termRef.current) {
+      termRef.current.scrollTop = termRef.current.scrollHeight
+    }
+  }
 
   useEffect(() => {
-    let live = true
-    setTyped(''); setDone(false)
-    ;(async () => {
-      const cmd = CMD[cur]
-      for (let i = 1; i <= cmd.length; i++) {
-        await sleep(45 + Math.random() * 50)
-        if (!live) return
-        setTyped(cmd.slice(0, i))
-      }
-      await sleep(250)
-      if (live) setDone(true)
-    })()
-    return () => { live = false }
-  }, [cur])
+    scrollToBottom()
+    const t = setTimeout(scrollToBottom, 20)
+    return () => clearTimeout(t)
+  }, [history, cur, wizard, loading, initialCleared])
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [wizard, loading, cur])
 
   useEffect(() => {
     if (window.location.pathname !== '/') {
@@ -162,16 +192,482 @@ export default function App() {
     return () => clearInterval(id)
   }, [])
 
-  const items = outputs(setCur)[cur]
+  const addHistory = (nodes) => {
+    setHistory((prev) => [...prev, ...nodes])
+  }
+
+  // GUI orqali yoki tezkor navigatsiya
+  const goTo = (target) => {
+    if (target === 'home') {
+      setCur('home')
+      addHistory([
+        <div key={Date.now()} className="term-msg">
+          <Prompt path={cur} /><span style={{ color: 'var(--fg)' }}>cd ~ && cat README.md</span>
+        </div>,
+        <div key={Date.now() + 1} className="o">
+          {outputs(goTo)['home']}
+        </div>,
+      ])
+    } else {
+      setCur(target)
+      addHistory([
+        <div key={Date.now()} className="term-msg">
+          <Prompt path={cur} /><span style={{ color: 'var(--fg)' }}>cd {target} && cat {target}.md</span>
+        </div>,
+        <div key={Date.now() + 1} className="o">
+          {outputs(goTo)[target]}
+        </div>,
+      ])
+    }
+  }
+
+  const sendEmail = async (n, e, m) => {
+    setLoading(true)
+    addHistory([
+      <div key={Date.now()} className="term-msg"><span className="h">[*]</span> Resend orqali yuborilmoqda...</div>,
+    ])
+    try {
+      const res = await fetch('/api/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: n, email: e, message: m }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        addHistory([
+          <div key={Date.now() + 1} className="term-msg">
+            <span className="u">[+]</span> <span className="u" style={{ fontWeight: 700 }}>Xabar muvaffaqiyatli yetkazildi!</span> Tez orada javob qaytaraman.
+          </div>,
+        ])
+      } else {
+        addHistory([
+          <div key={Date.now() + 1} className="term-msg">
+            <span className="k">[-] Xatolik:</span> {data.error || 'Yuborishda xatolik yuz berdi'}
+          </div>,
+        ])
+      }
+    } catch (err) {
+      addHistory([
+        <div key={Date.now() + 1} className="term-msg">
+          <span className="k">[-] Tarmoq xatoligi:</span> {err.message}
+        </div>,
+      ])
+    } finally {
+      setLoading(false)
+      setWizard(null)
+    }
+  }
+
+  const showHelp = (echoLine) => {
+    addHistory([
+      echoLine,
+      <div key={Date.now() + 1} className="term-msg" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
+        <span className="d">GNU bash, version 5.3.9(1)-release (x86_64-pc-linux-gnu)</span><br />
+        <span className="d">These shell commands are defined internally. Type `help&apos; to see this list.</span><br />
+        <span className="d">Type `send-mail --help&apos; to find out more about sending emails.</span><br /><br />
+        {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cd [dir]</span><span className="h">pwd</span><br />
+        {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cat &lt;file.md&gt;</span><span className="h">ls [-la]</span><br />
+        {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>send-mail [options]</span><span className="h">clear</span><br />
+        {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cd ..</span><span className="h">help</span><br /><br />
+        <span className="d">Directories:</span><br />
+        {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>about/</span><span className="u">resume/</span><br />
+        {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>contact/</span><span className="u">~ (home)</span><br /><br />
+        <span className="d">Files:</span><br />
+        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>README.md</span><span>about.md</span><br />
+        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>resume.md</span><span>contact.md</span>
+      </div>,
+    ])
+  }
+
+  const handleCommand = (raw) => {
+    const trimmed = raw.trim()
+    if (!trimmed) return
+
+    const echoLine = (
+      <div key={Date.now()} className="term-msg">
+        <Prompt path={cur} /><span style={{ color: 'var(--fg)' }}>{trimmed}</span>
+      </div>
+    )
+
+    if (trimmed === 'clear') {
+      setHistory([])
+      setInitialCleared(true)
+      setWizard(null)
+      return
+    }
+
+    // ls / dir
+    if (trimmed === 'ls' || trimmed === 'dir' || trimmed.startsWith('ls ')) {
+      let lsContent = null
+      if (cur === 'home') {
+        lsContent = (
+          <div key={Date.now() + 1} className="term-msg">
+            <span className="u" style={{ marginRight: 24 }}>README.md</span>
+            <span className="h" style={{ marginRight: 24, fontWeight: 700 }}>about/</span>
+            <span className="h" style={{ marginRight: 24, fontWeight: 700 }}>resume/</span>
+            <span className="h" style={{ fontWeight: 700 }}>contact/</span>
+          </div>
+        )
+      } else if (cur === 'about') {
+        lsContent = (
+          <div key={Date.now() + 1} className="term-msg">
+            <span>about.md</span>
+          </div>
+        )
+      } else if (cur === 'resume') {
+        lsContent = (
+          <div key={Date.now() + 1} className="term-msg">
+            <span style={{ marginRight: 24 }}>resume.md</span>
+            <span className="u">resume.pdf</span>
+          </div>
+        )
+      } else if (cur === 'contact') {
+        lsContent = (
+          <div key={Date.now() + 1} className="term-msg">
+            <span>contact.md</span>
+          </div>
+        )
+      }
+      addHistory([echoLine, lsContent])
+      return
+    }
+
+    // pwd
+    if (trimmed === 'pwd') {
+      const p = cur === 'home' ? '/root' : `/root/${cur}`
+      addHistory([echoLine, <div key={Date.now() + 1} className="term-msg">{p}</div>])
+      return
+    }
+
+    // cd bosh sahifaga
+    if (trimmed === 'cd' || trimmed === 'cd ~' || trimmed === 'cd /' || trimmed === 'cd /root' || trimmed === 'cd home' || trimmed === '~') {
+      setCur('home')
+      addHistory([echoLine])
+      return
+    }
+
+    // cd ..
+    if (trimmed === 'cd ..' || trimmed === 'cd ../') {
+      if (cur !== 'home') {
+        setCur('home')
+        addHistory([echoLine])
+      } else {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg d">~ (bosh sahifadasiz)</div>,
+        ])
+      }
+      return
+    }
+
+    // cd about
+    if (trimmed === 'cd about' || trimmed === 'cd ./about' || trimmed === 'cd ~/about') {
+      setCur('about')
+      addHistory([echoLine])
+      return
+    }
+
+    // cd resume
+    if (trimmed === 'cd resume' || trimmed === 'cd ./resume' || trimmed === 'cd ~/resume') {
+      setCur('resume')
+      addHistory([echoLine])
+      return
+    }
+
+    // cd contact
+    if (trimmed === 'cd contact' || trimmed === 'cd ./contact' || trimmed === 'cd ~/contact') {
+      setCur('contact')
+      addHistory([echoLine])
+      return
+    }
+
+    // cd xato
+    if (trimmed.startsWith('cd ')) {
+      const dir = trimmed.slice(3).trim()
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          bash: cd: {dir}: No such file or directory
+        </div>,
+      ])
+      return
+    }
+
+    // about.md / cat about.md
+    if (trimmed === 'cat about.md' || trimmed === 'about.md' || trimmed === './about.md' || trimmed === 'cat about/about.md') {
+      if (cur === 'about' || trimmed === 'cat about/about.md') {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="o">
+            {outputs(goTo)['about']}
+          </div>,
+        ])
+      } else {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            cat: about.md: No such file or directory. (<span className="h">cd about</span> yoki <span className="h">cat about/about.md</span> qiling)
+          </div>,
+        ])
+      }
+      return
+    }
+
+    // resume.md / cat resume.md
+    if (trimmed === 'cat resume.md' || trimmed === 'resume.md' || trimmed === './resume.md' || trimmed === 'cat resume/resume.md') {
+      if (cur === 'resume' || trimmed === 'cat resume/resume.md') {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="o">
+            {outputs(goTo)['resume']}
+          </div>,
+        ])
+      } else {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            cat: resume.md: No such file or directory. (<span className="h">cd resume</span> yoki <span className="h">cat resume/resume.md</span> qiling)
+          </div>,
+        ])
+      }
+      return
+    }
+
+    // contact.md / cat contact.md
+    if (trimmed === 'cat contact.md' || trimmed === 'contact.md' || trimmed === './contact.md' || trimmed === 'cat contact/contact.md') {
+      if (cur === 'contact' || trimmed === 'cat contact/contact.md') {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="o">
+            {outputs(goTo)['contact']}
+          </div>,
+        ])
+      } else {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            cat: contact.md: No such file or directory. (<span className="h">cd contact</span> yoki <span className="h">cat contact/contact.md</span> qiling)
+          </div>,
+        ])
+      }
+      return
+    }
+
+    // README.md / cat README.md
+    if (trimmed === 'cat README.md' || trimmed === 'README.md' || trimmed === './README.md' || trimmed === 'cat readme.md' || trimmed === 'readme.md') {
+      if (cur === 'home') {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="o">
+            {outputs(goTo)['home']}
+          </div>,
+        ])
+      } else {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            cat: README.md: No such file or directory. (<span className="h">cd ~</span> qiling)
+          </div>,
+        ])
+      }
+      return
+    }
+
+    // Tezkor sahifa chaqirish (about / resume / contact)
+    if (trimmed === 'about' || trimmed === './about') {
+      setCur('about')
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="o">
+          {outputs(goTo)['about']}
+        </div>,
+      ])
+      return
+    }
+    if (trimmed === 'resume' || trimmed === './resume') {
+      setCur('resume')
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="o">
+          {outputs(goTo)['resume']}
+        </div>,
+      ])
+      return
+    }
+    if (trimmed === 'contact' || trimmed === './contact') {
+      setCur('contact')
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="o">
+          {outputs(goTo)['contact']}
+        </div>,
+      ])
+      return
+    }
+
+    // cat xato fayl
+    if (trimmed.startsWith('cat ')) {
+      const f = trimmed.slice(4).trim()
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          cat: {f}: No such file or directory
+        </div>,
+      ])
+      return
+    }
+
+    if (trimmed === 'help') {
+      showHelp(echoLine)
+      return
+    }
+
+    const tokens = parseCliArgs(trimmed)
+    const cmd = tokens[0]
+
+    if (cmd === 'send-mail' || cmd === 'sendmail') {
+      if (tokens.includes('--help') || tokens.includes('-h')) {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg" style={{ whiteSpace: 'pre-wrap' }}>
+            <span className="h">Usage:</span> send-mail [options]<br /><br />
+            <span className="d">Options:</span><br />
+            {'  '}<span className="u">-n, --name</span> &lt;string&gt;     Ism va familiyangiz<br />
+            {'  '}<span className="u">-e, --email</span> &lt;email&gt;     Javob qaytarish uchun emailingiz<br />
+            {'  '}<span className="u">-m, --message</span> &lt;string&gt;  Xabar matni<br />
+            {'  '}<span className="u">-h, --help</span>             Ushbu yordam oynasini chiqarish<br /><br />
+            <span className="d">Examples:</span><br />
+            {'  '}<span className="h">send-mail</span> <span className="d">(interaktiv rejim)</span><br />
+            {'  '}<span className="h">send-mail --name &quot;Alijonov Abdulbosit&quot; --email &quot;info@alijonov.uz&quot; --message &quot;Salom!&quot;</span>
+          </div>,
+        ])
+        return
+      }
+
+      let nameVal = ''
+      let emailVal = ''
+      let msgVal = ''
+      for (let i = 1; i < tokens.length; i++) {
+        const t = tokens[i]
+        if ((t === '--name' || t === '-n') && tokens[i + 1]) nameVal = tokens[++i]
+        else if ((t === '--email' || t === '-e') && tokens[i + 1]) emailVal = tokens[++i]
+        else if ((t === '--message' || t === '-m') && tokens[i + 1]) msgVal = tokens[++i]
+      }
+
+      if (nameVal && emailVal && msgVal) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+          addHistory([
+            echoLine,
+            <div key={Date.now() + 1} className="term-msg">
+              <span className="k">[-] Xatolik:</span> Email formati noto‘g‘ri (&apos;{emailVal}&apos;)
+            </div>,
+          ])
+          return
+        }
+        addHistory([echoLine])
+        sendEmail(nameVal, emailVal, msgVal)
+        return
+      }
+
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg d">
+          --- Interaktiv xabar yuborish (bekor qilish: &apos;exit&apos;) ---
+        </div>,
+      ])
+
+      if (!nameVal) {
+        setWizard({ step: 'name', name: '', email: '', message: '' })
+      } else if (!emailVal) {
+        addHistory([<div key={Date.now() + 2} className="term-msg"><span className="u">&gt;</span> Ism: {nameVal}</div>])
+        setWizard({ step: 'email', name: nameVal, email: '', message: '' })
+      } else {
+        addHistory([
+          <div key={Date.now() + 2} className="term-msg"><span className="u">&gt;</span> Ism: {nameVal}</div>,
+          <div key={Date.now() + 3} className="term-msg"><span className="u">&gt;</span> Email: {emailVal}</div>,
+        ])
+        setWizard({ step: 'message', name: nameVal, email: emailVal, message: '' })
+      }
+      return
+    }
+
+    // Noma'lum buyruq: haqiqiy Linux bash xatoligi
+    addHistory([
+      echoLine,
+      <div key={Date.now() + 1} className="term-msg">
+        bash: {cmd}: command not found
+      </div>,
+    ])
+  }
+
+  const handleWizardInput = (val) => {
+    const trimmed = val.trim()
+    if (trimmed.toLowerCase() === 'exit' || trimmed.toLowerCase() === 'cancel') {
+      addHistory([
+        <div key={Date.now()} className="term-msg d">[!] Yuborish bekor qilindi.</div>,
+      ])
+      setWizard(null)
+      return
+    }
+
+    if (wizard.step === 'name') {
+      if (!trimmed) return
+      addHistory([
+        <div key={Date.now()} className="term-msg"><span className="u">&gt;</span> Ism: {trimmed}</div>,
+      ])
+      setWizard({ ...wizard, name: trimmed, step: 'email' })
+    } else if (wizard.step === 'email') {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+        addHistory([
+          <div key={Date.now()} className="term-msg">
+            <span className="k">[!]</span> To‘g‘ri email kiriting (masalan: user@example.com):
+          </div>,
+        ])
+        return
+      }
+      addHistory([
+        <div key={Date.now()} className="term-msg"><span className="u">&gt;</span> Email: {trimmed}</div>,
+      ])
+      setWizard({ ...wizard, email: trimmed, step: 'message' })
+    } else if (wizard.step === 'message') {
+      if (!trimmed) return
+      addHistory([
+        <div key={Date.now()} className="term-msg"><span className="u">&gt;</span> Xabar: {trimmed}</div>,
+        <div key={Date.now() + 1} className="term-msg">
+          <span className="h">[?] Xabar yuborilsinmi? (y/n) [y]:</span>
+        </div>,
+      ])
+      setWizard({ ...wizard, message: trimmed, step: 'confirm' })
+    } else if (wizard.step === 'confirm') {
+      const lower = trimmed.toLowerCase()
+      if (lower === 'n' || lower === 'no' || lower === 'yoq') {
+        addHistory([
+          <div key={Date.now()} className="term-msg d">[!] Yuborish bekor qilindi.</div>,
+        ])
+        setWizard(null)
+      } else {
+        sendEmail(wizard.name, wizard.email, wizard.message)
+      }
+    }
+  }
+
+  const getPromptLabel = () => {
+    if (!wizard) return <Prompt path={cur} />
+    if (wizard.step === 'name') return <span className="h" style={{ whiteSpace: 'nowrap' }}>? Ism va familiyangiz:&nbsp;</span>
+    if (wizard.step === 'email') return <span className="h" style={{ whiteSpace: 'nowrap' }}>? Email manzilingiz:&nbsp;</span>
+    if (wizard.step === 'message') return <span className="h" style={{ whiteSpace: 'nowrap' }}>? Xabaringiz:&nbsp;</span>
+    if (wizard.step === 'confirm') return <span className="u" style={{ whiteSpace: 'nowrap' }}>[?] Tasdiqlash (y/n) [y]:&nbsp;</span>
+    return <Prompt path={cur} />
+  }
 
   return (
     <>
       <div className="blob b1" /><div className="blob b2" />
       <div className="panel">
-        <span className="l">⌘ alijonov.uz</span>
+        <span className="l"><span style={{ color: 'var(--acc2)', marginRight: 6 }}>&gt;_</span>alijonov.uz</span>
         <nav>
-          {[['neofetch', '~'], ['about', 'about'], ['resume', 'resume'], ['contact', 'contact']].map(([k, l]) => (
-            <button key={k} className={cur === k ? 'on' : ''} onClick={() => setCur(k)}>{l}</button>
+          {[['home', '~'], ['about', 'about'], ['resume', 'resume'], ['contact', 'contact']].map(([k, l]) => (
+            <button key={k} className={cur === k ? 'on' : ''} onClick={() => goTo(k)}>{l}</button>
           ))}
         </nav>
         <span id="clk">{clock}</span>
@@ -180,20 +676,47 @@ export default function App() {
         <div className="win">
           <div className="bar">
             <i style={{ background: '#ff5f57' }} /><i style={{ background: '#febc2e' }} /><i style={{ background: '#28c840' }} />
-            <span>root@alijonov: ~</span>
+            <span>root@alijonov: {cur === 'home' ? '~' : `~/${cur}`}</span>
           </div>
-          <div className="term" key={cur}>
-            <div><Prompt />{typed}{!done && <span className="cur" />}</div>
-            {done && (
+          <div className="term" ref={termRef} onClick={() => inputRef.current?.focus()}>
+            {!initialCleared && (
               <>
-                <div className="o">
-                  {items.map((el, i) => <div key={i} style={{ animationDelay: i * 0.12 + 's' }}>{el}</div>)}
+                <div className="term-msg">
+                  <Prompt path="home" />cat README.md
                 </div>
-                <div style={{ marginTop: 16, opacity: 0, animation: 'ln .4s forwards', animationDelay: items.length * 0.12 + 0.2 + 's' }}>
-                  <Prompt /><span className="cur" />
+                <div className="o">
+                  {outputs(goTo)['home']}
                 </div>
               </>
             )}
+
+            {history.map((el, i) => (
+              <div key={i}>{el}</div>
+            ))}
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault()
+                if (loading) return
+                const v = inputVal
+                setInputVal('')
+                if (wizard) handleWizardInput(v)
+                else handleCommand(v)
+              }}
+              className="term-line"
+            >
+              {getPromptLabel()}
+              <input
+                ref={inputRef}
+                type="text"
+                className="term-in"
+                value={inputVal}
+                onChange={(e) => setInputVal(e.target.value)}
+                disabled={loading}
+                autoComplete="off"
+                spellCheck="false"
+              />
+            </form>
           </div>
         </div>
       </main>
