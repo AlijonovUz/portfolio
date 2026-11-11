@@ -290,7 +290,7 @@ export default function App() {
   const termRef = useRef(null)
   const bottomAnchorRef = useRef(null)
 
-  const scrollToBottom = (smooth = true) => {
+  const scrollToBottom = (smooth = false) => {
     const behavior = smooth ? 'smooth' : 'auto'
     if (bottomAnchorRef.current) {
       bottomAnchorRef.current.scrollIntoView({ behavior, block: 'end' })
@@ -303,13 +303,9 @@ export default function App() {
   }
 
   useEffect(() => {
-    scrollToBottom()
-    const t1 = setTimeout(() => scrollToBottom(), 50)
-    const t2 = setTimeout(() => scrollToBottom(), 180)
-    return () => {
-      clearTimeout(t1)
-      clearTimeout(t2)
-    }
+    scrollToBottom(false)
+    const t = setTimeout(() => scrollToBottom(false), 50)
+    return () => clearTimeout(t)
   }, [history, cur, wizard, loading, initialCleared])
 
   const focusInput = () => {
@@ -355,8 +351,11 @@ export default function App() {
     if (target === 'home') {
       setCur('home')
       addHistory([
-        <div key={Date.now()} className="term-msg">
-          <Prompt path={cur} /><span style={{ color: 'var(--fg)' }}>cd ~ && cat README.md</span>
+        <div key={Date.now()} className="term-line term-echo">
+          <Prompt path={cur} />
+          <div className="term-input-wrapper">
+            <span className="term-typed-text">cd ~ && cat README.md</span>
+          </div>
         </div>,
         <div key={Date.now() + 1} className="o">
           {outputs(goTo)['home']}
@@ -365,8 +364,11 @@ export default function App() {
     } else {
       setCur(target)
       addHistory([
-        <div key={Date.now()} className="term-msg">
-          <Prompt path={cur} /><span style={{ color: 'var(--fg)' }}>cd {target} && cat {target}.md</span>
+        <div key={Date.now()} className="term-line term-echo">
+          <Prompt path={cur} />
+          <div className="term-input-wrapper">
+            <span className="term-typed-text">cd {target} && cat {target}.md</span>
+          </div>
         </div>,
         <div key={Date.now() + 1} className="o">
           {outputs(goTo)[target]}
@@ -444,8 +446,11 @@ export default function App() {
     if (!trimmed) return
 
     const echoLine = (
-      <div key={Date.now()} className="term-msg">
-        <Prompt path={cur} /><span style={{ color: 'var(--fg)' }}>{trimmed}</span>
+      <div key={Date.now()} className="term-line term-echo">
+        <Prompt path={cur} />
+        <div className="term-input-wrapper">
+          <span className="term-typed-text">{trimmed}</span>
+        </div>
       </div>
     )
 
@@ -1281,8 +1286,11 @@ export default function App() {
           <div className="term" ref={termRef} onClick={() => inputRef.current?.focus()}>
             {!initialCleared && (
               <>
-                <div className="term-msg">
-                  <Prompt path="home" />cat README.md
+                <div className="term-line term-echo">
+                  <Prompt path="home" />
+                  <div className="term-input-wrapper">
+                    <span className="term-typed-text">cat README.md</span>
+                  </div>
                 </div>
                 <div className="o">
                   {outputs(goTo)['home']}
@@ -1306,8 +1314,6 @@ export default function App() {
                 }
                 if (wizard) handleWizardInput(v)
                 else handleCommand(v)
-                setTimeout(() => scrollToBottom(), 30)
-                setTimeout(() => scrollToBottom(), 150)
               }}
               className="term-line"
             >
