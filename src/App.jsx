@@ -2151,8 +2151,8 @@ export default function App() {
       </main>
 
       <div className="st">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
-          <span>-- NORMAL --</span>
+        <div className="st-left">
+          <span className="st-mode">-- NORMAL --</span>
           <div className="win-tabs">
             {windows.map((w, idx) => (
               <button
@@ -2172,7 +2172,10 @@ export default function App() {
             )}
           </div>
         </div>
-        <span>© {new Date().getFullYear()} alijonov.uz</span>
+        <span className="st-right">
+          <span className="st-yr">© {new Date().getFullYear()} </span>
+          alijonov.uz
+        </span>
       </div>
     </>
   )
