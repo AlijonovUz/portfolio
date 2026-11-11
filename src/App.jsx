@@ -1054,7 +1054,23 @@ export default function App() {
       let files = []
       if (cur === 'home') {
         dirs = ['about', 'projects', 'resume', 'contact']
-        files = ['README.md', 'about.md', 'projects.md', 'meetly.md', 'authly.md', 'fragmently.md', 'resume.md', 'contact.md']
+        files = [
+          'README.md',
+          'about.md',
+          'projects.md',
+          'meetly.md',
+          'authly.md',
+          'fragmently.md',
+          'resume.md',
+          'contact.md',
+          'about/about.md',
+          'projects/projects.md',
+          'projects/meetly.md',
+          'projects/authly.md',
+          'projects/fragmently.md',
+          'resume/resume.md',
+          'contact/contact.md',
+        ]
       } else if (cur === 'about') {
         dirs = []
         files = ['about.md']
@@ -1082,11 +1098,30 @@ export default function App() {
       }
 
       // 2) cat <file>
+      if (val === 'cat') {
+        setInputVal('cat ')
+        return
+      }
+
       if (val.startsWith('cat ')) {
-        const prefix = val.slice(4).trimStart()
-        const match = files.find((f) => f.toLowerCase().startsWith(prefix.toLowerCase()))
+        const rawPrefix = val.slice(4).trimStart()
+        const cleanPrefix = rawPrefix.replace(/^\.\//, '')
+
+        if (!rawPrefix) {
+          const defaultFile = cur === 'home' ? 'README.md' : (cur === 'projects' ? 'projects.md' : `${cur}.md`)
+          setInputVal(`cat ${defaultFile}`)
+          return
+        }
+
+        const match = files.find((f) => {
+          const lowerF = f.toLowerCase()
+          const lowerP = cleanPrefix.toLowerCase()
+          return lowerF.startsWith(lowerP) || lowerF.replace(/^.*\//, '').startsWith(lowerP)
+        })
+
         if (match) {
-          setInputVal(`cat ${match}`)
+          const prefixToKeep = rawPrefix.startsWith('./') ? './' : ''
+          setInputVal(`cat ${prefixToKeep}${match}`)
         }
         return
       }
