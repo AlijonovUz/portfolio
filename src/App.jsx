@@ -91,7 +91,7 @@ function outputs(go) {
     about: [
       <div className="k"># Abdulbosit Alijonov</div>,
       <div className="d">## kim ekanim</div>,
-      <div>Backend tizimlar quraman. Kodni toza, tushunarli va barqaror yozishni yaxshi ko‘raman, murakkab muammoni oddiy yechimga aylantirish menga ayniqsa yoqadi. Yangi narsani o‘rganish va o‘rgangan narsamni boshqalarga tushuntirish men uchun qiziq.</div>,
+      <div>Farg‘onalik backend dasturchiman. Dasturlashni 2021-yilda boshlaganman, shundan beri Telegram botlardan tortib katta tizimlargacha ishlab keldim. Toza kod va oddiy yechimlarni yoqtiraman.</div>,
       <div className="hr" />,
       <div className="d">## nima bilan shug‘ullanaman</div>,
       <div>• Raqamli monitoring tizimlari va API ishlab chiqish<br />• Murakkab xatolarni topib, tizimni barqaror ushlash<br />• Docker bilan loyihalarni ishga tushirish<br />• Agile/Scrum jamoasida ishlash</div>,
@@ -194,7 +194,7 @@ export default function App() {
           </div>
         </div>
       </main>
-      <div className="st"><span>-- NORMAL -- main</span><span>© 2026 alijonov.uz</span></div>
+      <div className="st"><span>-- NORMAL -- main</span><span>© {new Date().getFullYear()} alijonov.uz</span></div>
     </>
   )
 }
