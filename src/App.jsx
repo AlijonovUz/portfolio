@@ -159,6 +159,8 @@ export default function App() {
 
   // Terminal buyruqlar va xabarlar ro'yxati
   const [history, setHistory] = useState([])
+  const [cmdHistory, setCmdHistory] = useState([])
+  const [historyIndex, setHistoryIndex] = useState(-1)
   const [wizard, setWizard] = useState(null)
   const [inputVal, setInputVal] = useState('')
   const [loading, setLoading] = useState(false)
@@ -681,6 +683,84 @@ export default function App() {
     return <Prompt path={cur} />
   }
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      if (cmdHistory.length === 0) return
+      const nextIdx = historyIndex === -1 ? cmdHistory.length - 1 : Math.max(0, historyIndex - 1)
+      setHistoryIndex(nextIdx)
+      setInputVal(cmdHistory[nextIdx])
+      return
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      if (historyIndex === -1) return
+      const nextIdx = historyIndex + 1
+      if (nextIdx >= cmdHistory.length) {
+        setHistoryIndex(-1)
+        setInputVal('')
+      } else {
+        setHistoryIndex(nextIdx)
+        setInputVal(cmdHistory[nextIdx])
+      }
+      return
+    }
+
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      if (wizard || loading) return
+      const val = inputVal
+      const trimmed = val.trim()
+      if (!trimmed) return
+
+      let dirs = []
+      let files = []
+      if (cur === 'home') {
+        dirs = ['about', 'resume', 'contact']
+        files = ['README.md', 'about.md', 'resume.md', 'contact.md']
+      } else if (cur === 'about') {
+        dirs = []
+        files = ['about.md']
+      } else if (cur === 'resume') {
+        dirs = []
+        files = ['resume.md', 'resume.pdf']
+      } else if (cur === 'contact') {
+        dirs = []
+        files = ['contact.md']
+      }
+
+      // 1) cd <dir>
+      if (val.startsWith('cd ')) {
+        const prefix = val.slice(3).trimStart()
+        const pool = ['..', '~', ...dirs]
+        const match = pool.find((d) => d.toLowerCase().startsWith(prefix.toLowerCase()))
+        if (match) {
+          setInputVal(`cd ${match}`)
+        }
+        return
+      }
+
+      // 2) cat <file>
+      if (val.startsWith('cat ')) {
+        const prefix = val.slice(4).trimStart()
+        const match = files.find((f) => f.toLowerCase().startsWith(prefix.toLowerCase()))
+        if (match) {
+          setInputVal(`cat ${match}`)
+        }
+        return
+      }
+
+      // 3) Boshqa alohida fayl, papka yoki buyruqlar (masalan: R -> README.md, a -> about.md, he -> help)
+      const commands = ['help', 'clear', 'send-mail', 'pwd', 'ls', 'cd', 'cat']
+      const pool = [...files, ...dirs, ...commands]
+      const match = pool.find((item) => item.toLowerCase().startsWith(trimmed.toLowerCase()))
+      if (match) {
+        setInputVal(match)
+      }
+    }
+  }
+
   return (
     <>
       <div className="blob b1" /><div className="blob b2" />
@@ -721,6 +801,10 @@ export default function App() {
                 if (loading) return
                 const v = inputVal
                 setInputVal('')
+                if (v.trim() && !wizard) {
+                  setCmdHistory((prev) => [...prev, v.trim()])
+                  setHistoryIndex(-1)
+                }
                 if (wizard) handleWizardInput(v)
                 else handleCommand(v)
                 setTimeout(scrollToBottom, 20)
@@ -737,6 +821,7 @@ export default function App() {
                   className="term-real-input"
                   value={inputVal}
                   onChange={(e) => setInputVal(e.target.value)}
+                  onKeyDown={handleKeyDown}
                   disabled={loading}
                   autoComplete="off"
                   spellCheck="false"
