@@ -199,8 +199,8 @@ function outputs(go) {
         </div>
       )),
       <div className="cta" key="cta">
-        <button onClick={() => go('contact')}>./contact</button>
-        <button onClick={() => go('resume')}>./resume</button>
+        <button onClick={() => go('contact')}>../contact</button>
+        <button onClick={() => go('resume')}>../resume</button>
       </div>,
     ],
     about: [
@@ -213,6 +213,11 @@ function outputs(go) {
       <div className="hr" key="hr2" />,
       <div className="d" key="d3">## texnologiyalar</div>,
       <Groups data={ALL} key="all" />,
+      <div className="cta" key="cta">
+        <button onClick={() => go('projects')}>../projects</button>
+        <button onClick={() => go('resume')}>../resume</button>
+        <button onClick={() => go('contact')}>../contact</button>
+      </div>,
     ],
     resume: [
       <div className="k" key="h"># Resume</div>,
@@ -231,7 +236,7 @@ function outputs(go) {
       <div key="langs">{LANGS.map(([a, b]) => <div className="row" key={a}>• {a} <span className="d">— {b}</span></div>)}</div>,
       <div className="cta" key="cta">
         <button onClick={() => window.open(RESUME_PDF, '_blank')}>resume.pdf</button>
-        <button onClick={() => go('contact')}>./contact</button>
+        <button onClick={() => go('contact')}>../contact</button>
       </div>,
     ],
     contact: [
@@ -248,8 +253,71 @@ function outputs(go) {
         • Interaktiv rejim: <span className="h">send-mail</span><br />
         • Parametrlar bilan: <span className="h">send-mail --help</span>
       </div>,
+      <div className="cta" key="cta">
+        <button onClick={() => go('projects')}>../projects</button>
+        <button onClick={() => go('resume')}>../resume</button>
+      </div>,
     ],
   }
+}
+
+function resolveCd(targetArg, currentCur) {
+  const raw = (targetArg || '').trim()
+  if (!raw || raw === '~' || raw === '/' || raw === '/root' || raw === 'home') {
+    return { success: true, newCur: 'home' }
+  }
+  if (raw === '.' || raw === './') {
+    return { success: true, newCur: currentCur }
+  }
+  if (raw === '..' || raw === '../') {
+    return { success: true, newCur: 'home' }
+  }
+
+  // Absolute / home-relative: ~/projects, /root/projects
+  if (raw.startsWith('~/') || raw.startsWith('/root/')) {
+    const sub = raw.replace(/^(~\/|\/root\/)/, '').replace(/\/+$/, '')
+    if (!sub) return { success: true, newCur: 'home' }
+    if (['about', 'projects', 'resume', 'contact'].includes(sub)) {
+      return { success: true, newCur: sub }
+    }
+    return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
+  }
+
+  // Parent-relative: ../projects, ../resume
+  if (raw.startsWith('../')) {
+    const sub = raw.replace(/^\.\.\//, '').replace(/\/+$/, '')
+    if (currentCur === 'home') {
+      return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
+    }
+    if (!sub) return { success: true, newCur: 'home' }
+    if (['about', 'projects', 'resume', 'contact'].includes(sub)) {
+      return { success: true, newCur: sub }
+    }
+    return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
+  }
+
+  // Current-relative: ./projects, ./resume
+  if (raw.startsWith('./')) {
+    const sub = raw.replace(/^\.\//, '').replace(/\/+$/, '')
+    if (currentCur === 'home' && ['about', 'projects', 'resume', 'contact'].includes(sub)) {
+      return { success: true, newCur: sub }
+    }
+    return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
+  }
+
+  // Direct bare name: about, projects, resume, contact
+  const cleanBare = raw.replace(/\/+$/, '')
+  if (['about', 'projects', 'resume', 'contact'].includes(cleanBare)) {
+    if (currentCur === 'home') {
+      return { success: true, newCur: cleanBare }
+    }
+    if (cleanBare === currentCur) {
+      return { success: false, error: `bash: cd: ${targetArg}: No such file or directory (allaqachon ~/${cleanBare} papkasidasiz)` }
+    }
+    return { success: false, error: `bash: cd: ${targetArg}: No such file or directory (avval cd .. yoki cd ../${cleanBare} qiling)` }
+  }
+
+  return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
 }
 
 export default function App() {
@@ -358,33 +426,33 @@ export default function App() {
 
   // GUI orqali yoki tezkor navigatsiya
   const goTo = (target) => {
+    const prevCur = cur
+    setCur(target)
+
+    let cmd = ''
     if (target === 'home') {
-      setCur('home')
-      addHistory([
-        <div key={Date.now()} className="term-line term-echo">
-          <Prompt path={cur} />
-          <div className="term-input-wrapper">
-            <span className="term-typed-text">cd ~ && cat README.md</span>
-          </div>
-        </div>,
-        <div key={Date.now() + 1} className="o">
-          {outputs(goTo)['home']}
-        </div>,
-      ])
+      cmd = prevCur === 'home' ? 'cat README.md' : 'cd .. && cat README.md'
     } else {
-      setCur(target)
-      addHistory([
-        <div key={Date.now()} className="term-line term-echo">
-          <Prompt path={cur} />
-          <div className="term-input-wrapper">
-            <span className="term-typed-text">cd {target} && cat {target}.md</span>
-          </div>
-        </div>,
-        <div key={Date.now() + 1} className="o">
-          {outputs(goTo)[target]}
-        </div>,
-      ])
+      if (prevCur === 'home') {
+        cmd = `cd ${target} && cat ${target}.md`
+      } else if (prevCur === target) {
+        cmd = `cat ${target}.md`
+      } else {
+        cmd = `cd ../${target} && cat ${target}.md`
+      }
     }
+
+    addHistory([
+      <div key={Date.now()} className="term-line term-echo">
+        <Prompt path={prevCur} />
+        <div className="term-input-wrapper">
+          <span className="term-typed-text">{cmd}</span>
+        </div>
+      </div>,
+      <div key={Date.now() + 1} className="o">
+        {outputs(goTo)[target]}
+      </div>,
+    ])
     setTimeout(() => scrollToBottom(), 40)
   }
 
@@ -451,6 +519,242 @@ export default function App() {
     ])
   }
 
+  const handleChainedCommand = (fullCmd, echoLine) => {
+    const subCmds = fullCmd.split('&&').map((s) => s.trim()).filter(Boolean)
+    let runningCur = cur
+    const outputNodes = []
+
+    for (let i = 0; i < subCmds.length; i++) {
+      const sub = subCmds[i]
+
+      // 1. cd yoki papka yo'nalishi
+      if (sub === 'cd' || sub.startsWith('cd ') || ['about', 'projects', 'resume', 'contact', './about', './projects', './resume', './contact', '../about', '../projects', '../resume', '../contact', '..', '~'].includes(sub)) {
+        const rawTarget = sub.startsWith('cd ') ? sub.slice(3).trim() : (sub === 'cd' ? '' : sub)
+        const res = resolveCd(rawTarget, runningCur)
+        if (res.success) {
+          runningCur = res.newCur
+        } else {
+          outputNodes.push(
+            <div key={Date.now() + i} className="term-msg">
+              {res.error}
+            </div>
+          )
+          break
+        }
+        continue
+      }
+
+      // 2. cat buyruqlari
+      if (sub.startsWith('cat ') || sub.endsWith('.md') || sub.endsWith('.pdf')) {
+        let file = sub.startsWith('cat ') ? sub.slice(4).trim() : sub
+        file = file.replace(/^\.\//, '')
+
+        if (file === 'README.md' || file === 'readme.md') {
+          if (runningCur === 'home') {
+            outputNodes.push(<div key={Date.now() + i} className="o">{outputs(goTo)['home']}</div>)
+          } else {
+            outputNodes.push(
+              <div key={Date.now() + i} className="term-msg">
+                cat: README.md: No such file or directory. (<span className="h">cd ~</span> qiling)
+              </div>
+            )
+            break
+          }
+          continue
+        }
+
+        if (file === 'about.md' || file === 'about/about.md') {
+          if (runningCur === 'about' || (runningCur === 'home' && file === 'about/about.md')) {
+            outputNodes.push(<div key={Date.now() + i} className="o">{outputs(goTo)['about']}</div>)
+          } else {
+            outputNodes.push(
+              <div key={Date.now() + i} className="term-msg">
+                cat: about.md: No such file or directory. (<span className="h">cd about</span> yoki <span className="h">cat about/about.md</span> qiling)
+              </div>
+            )
+            break
+          }
+          continue
+        }
+
+        if (file === 'projects.md' || file === 'projects/projects.md') {
+          if (runningCur === 'projects' || (runningCur === 'home' && file === 'projects/projects.md')) {
+            outputNodes.push(<div key={Date.now() + i} className="o">{outputs(goTo)['projects']}</div>)
+          } else {
+            outputNodes.push(
+              <div key={Date.now() + i} className="term-msg">
+                cat: projects.md: No such file or directory. (<span className="h">cd projects</span> yoki <span className="h">cat projects/projects.md</span> qiling)
+              </div>
+            )
+            break
+          }
+          continue
+        }
+
+        if (file === 'meetly.md' || file === 'projects/meetly.md') {
+          if (runningCur === 'projects' || (runningCur === 'home' && file === 'projects/meetly.md')) {
+            outputNodes.push(<div key={Date.now() + i} className="o">{singleProjectOutput('meetly')}</div>)
+          } else {
+            outputNodes.push(
+              <div key={Date.now() + i} className="term-msg">
+                cat: meetly.md: No such file or directory. (<span className="h">cd projects</span> qiling)
+              </div>
+            )
+            break
+          }
+          continue
+        }
+
+        if (file === 'authly.md' || file === 'projects/authly.md') {
+          if (runningCur === 'projects' || (runningCur === 'home' && file === 'projects/authly.md')) {
+            outputNodes.push(<div key={Date.now() + i} className="o">{singleProjectOutput('authly')}</div>)
+          } else {
+            outputNodes.push(
+              <div key={Date.now() + i} className="term-msg">
+                cat: authly.md: No such file or directory. (<span className="h">cd projects</span> qiling)
+              </div>
+            )
+            break
+          }
+          continue
+        }
+
+        if (file === 'fragmently.md' || file === 'projects/fragmently.md') {
+          if (runningCur === 'projects' || (runningCur === 'home' && file === 'projects/fragmently.md')) {
+            outputNodes.push(<div key={Date.now() + i} className="o">{singleProjectOutput('fragmently')}</div>)
+          } else {
+            outputNodes.push(
+              <div key={Date.now() + i} className="term-msg">
+                cat: fragmently.md: No such file or directory. (<span className="h">cd projects</span> qiling)
+              </div>
+            )
+            break
+          }
+          continue
+        }
+
+        if (file === 'resume.md' || file === 'resume/resume.md') {
+          if (runningCur === 'resume' || (runningCur === 'home' && file === 'resume/resume.md')) {
+            outputNodes.push(<div key={Date.now() + i} className="o">{outputs(goTo)['resume']}</div>)
+          } else {
+            outputNodes.push(
+              <div key={Date.now() + i} className="term-msg">
+                cat: resume.md: No such file or directory. (<span className="h">cd resume</span> yoki <span className="h">cat resume/resume.md</span> qiling)
+              </div>
+            )
+            break
+          }
+          continue
+        }
+
+        if (file === 'resume.pdf' || file === 'resume/resume.pdf') {
+          if (runningCur === 'resume' || (runningCur === 'home' && file === 'resume/resume.pdf')) {
+            window.open(RESUME_PDF, '_blank')
+            outputNodes.push(
+              <div key={Date.now() + i} className="term-msg">
+                <span className="u">[+]</span> resume.pdf ochilmoqda (yangi oynada)...
+              </div>
+            )
+          } else {
+            outputNodes.push(
+              <div key={Date.now() + i} className="term-msg">
+                cat: resume.pdf: No such file or directory. (<span className="h">cd resume</span> qiling)
+              </div>
+            )
+            break
+          }
+          continue
+        }
+
+        if (file === 'contact.md' || file === 'contact/contact.md') {
+          if (runningCur === 'contact' || (runningCur === 'home' && file === 'contact/contact.md')) {
+            outputNodes.push(<div key={Date.now() + i} className="o">{outputs(goTo)['contact']}</div>)
+          } else {
+            outputNodes.push(
+              <div key={Date.now() + i} className="term-msg">
+                cat: contact.md: No such file or directory. (<span className="h">cd contact</span> yoki <span className="h">cat contact/contact.md</span> qiling)
+              </div>
+            )
+            break
+          }
+          continue
+        }
+
+        outputNodes.push(
+          <div key={Date.now() + i} className="term-msg">
+            cat: {file}: No such file or directory
+          </div>
+        )
+        break
+      }
+
+      // 3. pwd
+      if (sub === 'pwd') {
+        const p = runningCur === 'home' ? '/root' : `/root/${runningCur}`
+        outputNodes.push(<div key={Date.now() + i} className="term-msg">{p}</div>)
+        continue
+      }
+
+      // 4. echo
+      if (sub.startsWith('echo ')) {
+        const msg = sub.slice(5).replace(/^["']|["']$/g, '')
+        outputNodes.push(<div key={Date.now() + i} className="term-msg">{msg}</div>)
+        continue
+      }
+
+      // 5. ls
+      if (sub === 'ls' || sub === 'dir' || sub.startsWith('ls ')) {
+        let lsContent = null
+        if (runningCur === 'home') {
+          lsContent = (
+            <div key={Date.now() + i} className="term-msg">
+              <span className="u" style={{ marginRight: 24 }}>README.md</span>
+              <span className="h" style={{ marginRight: 24, fontWeight: 700 }}>about/</span>
+              <span className="h" style={{ marginRight: 24, fontWeight: 700 }}>projects/</span>
+              <span className="h" style={{ marginRight: 24, fontWeight: 700 }}>resume/</span>
+              <span className="h" style={{ fontWeight: 700 }}>contact/</span>
+            </div>
+          )
+        } else if (runningCur === 'about') {
+          lsContent = <div key={Date.now() + i} className="term-msg"><span>about.md</span></div>
+        } else if (runningCur === 'projects') {
+          lsContent = (
+            <div key={Date.now() + i} className="term-msg">
+              <span style={{ marginRight: 24 }}>projects.md</span>
+              <span style={{ marginRight: 24 }}>meetly.md</span>
+              <span style={{ marginRight: 24 }}>authly.md</span>
+              <span>fragmently.md</span>
+            </div>
+          )
+        } else if (runningCur === 'resume') {
+          lsContent = (
+            <div key={Date.now() + i} className="term-msg">
+              <span style={{ marginRight: 24 }}>resume.md</span>
+              <span className="u">resume.pdf</span>
+            </div>
+          )
+        } else if (runningCur === 'contact') {
+          lsContent = <div key={Date.now() + i} className="term-msg"><span>contact.md</span></div>
+        }
+        outputNodes.push(lsContent)
+        continue
+      }
+
+      outputNodes.push(
+        <div key={Date.now() + i} className="term-msg">
+          bash: {sub}: command not found
+        </div>
+      )
+      break
+    }
+
+    if (runningCur !== cur) {
+      setCur(runningCur)
+    }
+
+    addHistory([echoLine, ...outputNodes])
+  }
+
   const handleCommand = (raw) => {
     const trimmed = raw.trim()
     if (!trimmed) return
@@ -463,6 +767,11 @@ export default function App() {
         </div>
       </div>
     )
+
+    if (trimmed.includes('&&')) {
+      handleChainedCommand(trimmed, echoLine)
+      return
+    }
 
     if (trimmed === 'clear') {
       setHistory([])
@@ -527,58 +836,18 @@ export default function App() {
     // cd [dir] (about, about/, projects, projects/, resume, contact, ~, .., va h.k.)
     if (trimmed.startsWith('cd ') || trimmed === 'cd') {
       const rawTarget = trimmed.startsWith('cd ') ? trimmed.slice(3).trim() : ''
-      const target = rawTarget.replace(/^\.\//, '').replace(/^~\//, '').replace(/\/+$/, '')
-
-      if (!target || target === '~' || target === '/' || target === 'home' || target === '/root') {
-        setCur('home')
+      const res = resolveCd(rawTarget, cur)
+      if (res.success) {
+        setCur(res.newCur)
         addHistory([echoLine])
-        return
+      } else {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            {res.error}
+          </div>,
+        ])
       }
-
-      if (target === '..') {
-        if (cur !== 'home') {
-          setCur('home')
-          addHistory([echoLine])
-        } else {
-          addHistory([
-            echoLine,
-            <div key={Date.now() + 1} className="term-msg d">~ (bosh sahifadasiz)</div>,
-          ])
-        }
-        return
-      }
-
-      if (target === 'about') {
-        setCur('about')
-        addHistory([echoLine])
-        return
-      }
-
-      if (target === 'projects') {
-        setCur('projects')
-        addHistory([echoLine])
-        return
-      }
-
-      if (target === 'resume') {
-        setCur('resume')
-        addHistory([echoLine])
-        return
-      }
-
-      if (target === 'contact') {
-        setCur('contact')
-        addHistory([echoLine])
-        return
-      }
-
-      // Noto'g'ri papka
-      addHistory([
-        echoLine,
-        <div key={Date.now() + 1} className="term-msg">
-          bash: cd: {rawTarget}: No such file or directory
-        </div>,
-      ])
       return
     }
 
@@ -755,24 +1024,19 @@ export default function App() {
     }
 
     // Tezkor sahifa chaqirish (about / projects / resume / contact) — faqat cd, output emas
-    if (trimmed === 'about' || trimmed === './about' || trimmed === 'about/') {
-      setCur('about')
-      addHistory([echoLine])
-      return
-    }
-    if (trimmed === 'projects' || trimmed === './projects' || trimmed === 'projects/') {
-      setCur('projects')
-      addHistory([echoLine])
-      return
-    }
-    if (trimmed === 'resume' || trimmed === './resume' || trimmed === 'resume/') {
-      setCur('resume')
-      addHistory([echoLine])
-      return
-    }
-    if (trimmed === 'contact' || trimmed === './contact' || trimmed === 'contact/') {
-      setCur('contact')
-      addHistory([echoLine])
+    if (['about', 'projects', 'resume', 'contact', './about', './projects', './resume', './contact', '../about', '../projects', '../resume', '../contact', 'about/', 'projects/', 'resume/', 'contact/'].includes(trimmed)) {
+      const res = resolveCd(trimmed, cur)
+      if (res.success) {
+        setCur(res.newCur)
+        addHistory([echoLine])
+      } else {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            {res.error}
+          </div>,
+        ])
+      }
       return
     }
 
@@ -1232,16 +1496,16 @@ export default function App() {
           'contact/contact.md',
         ]
       } else if (cur === 'about') {
-        dirs = []
+        dirs = ['..', '../', '../projects/', '../resume/', '../contact/']
         files = ['about.md']
       } else if (cur === 'projects') {
-        dirs = []
+        dirs = ['..', '../', '../about/', '../resume/', '../contact/']
         files = ['projects.md', 'meetly.md', 'authly.md', 'fragmently.md']
       } else if (cur === 'resume') {
-        dirs = []
+        dirs = ['..', '../', '../about/', '../projects/', '../contact/']
         files = ['resume.md', 'resume.pdf']
       } else if (cur === 'contact') {
-        dirs = []
+        dirs = ['..', '../', '../about/', '../projects/', '../resume/']
         files = ['contact.md']
       }
 
@@ -1258,13 +1522,15 @@ export default function App() {
         }
 
         // 1. Mos keluvchilarni topish (avval case-sensitive, keyin case-insensitive)
+        const stripTrailing = (s) => s.replace(/\/+$/, '')
         let matches = pool.filter((item) =>
-          item.startsWith(cleanPrefix) || item.replace(/^.*\//, '').startsWith(cleanPrefix)
+          item.startsWith(cleanPrefix) ||
+          stripTrailing(item).replace(/^.*\//, '').startsWith(cleanPrefix)
         )
         if (matches.length === 0) {
           matches = pool.filter((item) =>
             item.toLowerCase().startsWith(cleanPrefix.toLowerCase()) ||
-            item.replace(/^.*\//, '').toLowerCase().startsWith(cleanPrefix.toLowerCase())
+            stripTrailing(item).replace(/^.*\//, '').toLowerCase().startsWith(cleanPrefix.toLowerCase())
           )
         }
         if (matches.length === 0 && /^resume[mp]/i.test(cleanPrefix)) {
@@ -1305,7 +1571,7 @@ export default function App() {
         { prefix: 'vim ', pool: files },
         { prefix: 'vi ', pool: files },
         { prefix: 'cat ', pool: files },
-        { prefix: 'cd ', pool: ['..', '~', ...dirs] },
+        { prefix: 'cd ', pool: cur === 'home' ? ['..', '~', ...dirs] : ['..', '../', ...dirs, '~', '~/'] },
       ]
 
       for (const cfg of prefixConfigs) {
