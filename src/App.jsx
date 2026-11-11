@@ -337,8 +337,29 @@ function TerminalWindow({
   onStartResize,
 }) {
   const [cur, setCur] = useState(win.cur || 'home')
-  const [initialCleared, setInitialCleared] = useState(false)
-  const [history, setHistory] = useState([])
+  const curRef = useRef(cur)
+  curRef.current = cur
+
+  const goToRef = useRef(null)
+  const goToProxy = (t) => {
+    if (goToRef.current) goToRef.current(t)
+  }
+
+  const [history, setHistory] = useState(() => {
+    const initCur = win.cur || 'home'
+    const initCmd = initCur === 'home' ? 'cat README.md' : `cat ${initCur}.md`
+    return [
+      <div key="init-echo" className="term-line term-echo">
+        <Prompt path={initCur} />
+        <div className="term-input-wrapper">
+          <span className="term-typed-text">{initCmd}</span>
+        </div>
+      </div>,
+      <div key="init-out" className="o">
+        {outputs(goToProxy)[initCur]}
+      </div>,
+    ]
+  })
   const [cmdHistory, setCmdHistory] = useState([])
   const [historyIndex, setHistoryIndex] = useState(-1)
   const [wizard, setWizard] = useState(null)
@@ -402,7 +423,7 @@ function TerminalWindow({
     scrollToBottom(false)
     const t = setTimeout(() => scrollToBottom(false), 50)
     return () => clearTimeout(t)
-  }, [history, cur, wizard, loading, initialCleared])
+  }, [history, cur, wizard, loading])
 
   const focusInput = () => {
     if (inputRef.current) {
@@ -424,7 +445,7 @@ function TerminalWindow({
 
   // GUI orqali yoki tezkor navigatsiya
   const goTo = (target) => {
-    const prevCur = cur
+    const prevCur = curRef.current
     setCur(target)
 
     let cmd = ''
@@ -448,11 +469,15 @@ function TerminalWindow({
         </div>
       </div>,
       <div key={Date.now() + 1} className="o">
-        {outputs(goTo)[target]}
+        {outputs(goToProxy)[target]}
       </div>,
     ])
     setTimeout(() => scrollToBottom(), 40)
   }
+
+  useEffect(() => {
+    goToRef.current = goTo
+  }, [goTo])
 
   useEffect(() => {
     registerGoTo(win.id, goTo)
@@ -841,7 +866,6 @@ function TerminalWindow({
 
     if (trimmed === 'clear') {
       setHistory([])
-      setInitialCleared(true)
       setWizard(null)
       return
     }
@@ -1729,20 +1753,6 @@ function TerminalWindow({
 
       {/* Terminal kontenti va ichki scroll */}
       <div className="term" ref={termRef} onClick={() => focusInput()}>
-        {!initialCleared && (
-          <>
-            <div className="term-line term-echo">
-              <Prompt path={cur} />
-              <div className="term-input-wrapper">
-                <span className="term-typed-text">{cur === 'home' ? 'cat README.md' : `cat ${cur}.md`}</span>
-              </div>
-            </div>
-            <div className="o">
-              {outputs(goTo)[cur]}
-            </div>
-          </>
-        )}
-
         {history.map((el, i) => (
           <div key={i}>{el}</div>
         ))}
