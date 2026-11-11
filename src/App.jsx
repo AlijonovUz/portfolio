@@ -264,6 +264,27 @@ export default function App() {
   const [wizard, setWizard] = useState(null)
   const [inputVal, setInputVal] = useState('')
   const [loading, setLoading] = useState(false)
+  const [selection, setSelection] = useState({ start: 0, end: 0 })
+
+  const syncSelection = (targetEl) => {
+    const el = targetEl || inputRef.current
+    if (el) {
+      const start = el.selectionStart ?? 0
+      const end = el.selectionEnd ?? start
+      setSelection({ start, end })
+    }
+  }
+
+  const setInputValueAndCaret = (val, caretPos) => {
+    setInputVal(val)
+    const pos = caretPos !== undefined ? caretPos : val.length
+    setSelection({ start: pos, end: pos })
+    requestAnimationFrame(() => {
+      if (inputRef.current) {
+        inputRef.current.setSelectionRange(pos, pos)
+      }
+    })
+  }
 
   const inputRef = useRef(null)
   const termRef = useRef(null)
@@ -1084,7 +1105,7 @@ export default function App() {
       if (cmdHistory.length === 0) return
       const nextIdx = historyIndex === -1 ? cmdHistory.length - 1 : Math.max(0, historyIndex - 1)
       setHistoryIndex(nextIdx)
-      setInputVal(cmdHistory[nextIdx])
+      setInputValueAndCaret(cmdHistory[nextIdx])
       return
     }
 
@@ -1094,10 +1115,10 @@ export default function App() {
       const nextIdx = historyIndex + 1
       if (nextIdx >= cmdHistory.length) {
         setHistoryIndex(-1)
-        setInputVal('')
+        setInputValueAndCaret('')
       } else {
         setHistoryIndex(nextIdx)
-        setInputVal(cmdHistory[nextIdx])
+        setInputValueAndCaret(cmdHistory[nextIdx])
       }
       return
     }
@@ -1151,7 +1172,7 @@ export default function App() {
         if (!cleanPrefix) {
           if (cmdPrefix === 'cat ') {
             const defaultFile = cur === 'home' ? 'README.md' : (cur === 'projects' ? 'projects.md' : `${cur}.md`)
-            setInputVal(`cat ${defaultFile}`)
+            setInputValueAndCaret(`cat ${defaultFile}`)
             return true
           }
           return false
@@ -1175,21 +1196,21 @@ export default function App() {
 
         // 2. Yagona moslik bo'lsa
         if (matches.length === 1) {
-          setInputVal(`${cmdPrefix}${matches[0]}`)
+          setInputValueAndCaret(`${cmdPrefix}${matches[0]}`)
           return true
         }
 
         // 3. Bir nechta moslik bo'lsa: Longest Common Prefix (LCP)
         const lcp = getLongestCommonPrefix(matches)
         if (lcp && lcp.length > cleanPrefix.length) {
-          setInputVal(`${cmdPrefix}${lcp}`)
+          setInputValueAndCaret(`${cmdPrefix}${lcp}`)
           return true
         }
 
         // 4. Allaqachon LCP darajasida bo'lsa, Tab bosilganda navbatdagi variantga o'tish (cycle)
         const currIdx = matches.indexOf(cleanPrefix)
         const nextIdx = (currIdx + 1) % matches.length
-        setInputVal(`${cmdPrefix}${matches[nextIdx]}`)
+        setInputValueAndCaret(`${cmdPrefix}${matches[nextIdx]}`)
         return true
       }
 
@@ -1217,15 +1238,15 @@ export default function App() {
       }
 
       // Maxsus holatlar (bo'sh argumentli buyruqlar)
-      if (val === 'cat') { setInputVal('cat '); return }
-      if (val === 'cd') { setInputVal('cd '); return }
-      if (val === 'rm') { setInputVal('rm '); return }
-      if (val === 'rm -') { setInputVal('rm -rf '); return }
-      if (val === 'vim') { setInputVal('vim '); return }
-      if (val === 'nano') { setInputVal('nano '); return }
-      if (val === 'touch') { setInputVal('touch '); return }
-      if (val === 'mkdir') { setInputVal('mkdir '); return }
-      if (val === 'rmdir') { setInputVal('rmdir '); return }
+      if (val === 'cat') { setInputValueAndCaret('cat '); return }
+      if (val === 'cd') { setInputValueAndCaret('cd '); return }
+      if (val === 'rm') { setInputValueAndCaret('rm '); return }
+      if (val === 'rm -') { setInputValueAndCaret('rm -rf '); return }
+      if (val === 'vim') { setInputValueAndCaret('vim '); return }
+      if (val === 'nano') { setInputValueAndCaret('nano '); return }
+      if (val === 'touch') { setInputValueAndCaret('touch '); return }
+      if (val === 'mkdir') { setInputValueAndCaret('mkdir '); return }
+      if (val === 'rmdir') { setInputValueAndCaret('rmdir '); return }
 
       // Prefikssiz, alohida yozilayotgan buyruq yoki fayl/papka nomi
       const commands = [
@@ -1278,7 +1299,7 @@ export default function App() {
                 e.preventDefault()
                 if (loading) return
                 const v = inputVal
-                setInputVal('')
+                setInputValueAndCaret('')
                 if (v.trim() && !wizard) {
                   setCmdHistory((prev) => [...prev, v.trim()])
                   setHistoryIndex(-1)
@@ -1292,15 +1313,63 @@ export default function App() {
             >
               {getPromptLabel()}
               <div className="term-input-wrapper" onClick={() => focusInput()}>
-                <span className="term-typed-text">{inputVal}</span>
-                <span className="term-block-cursor" />
+                {(() => {
+                  const start = Math.min(selection.start, selection.end)
+                  const end = Math.max(selection.start, selection.end)
+                  const isSelected = start !== end
+
+                  if (isSelected) {
+                    const before = inputVal.slice(0, start)
+                    const selectedText = inputVal.slice(start, end)
+                    const after = inputVal.slice(end)
+                    return (
+                      <span className="term-typed-text">
+                        <span>{before}</span>
+                        <span className="term-selection">{selectedText}</span>
+                        <span>{after}</span>
+                      </span>
+                    )
+                  }
+
+                  const pos = Math.min(Math.max(0, start), inputVal.length)
+                  if (pos < inputVal.length) {
+                    const before = inputVal.slice(0, pos)
+                    const char = inputVal[pos] === ' ' ? '\u00A0' : inputVal[pos]
+                    const after = inputVal.slice(pos + 1)
+                    return (
+                      <span className="term-typed-text">
+                        <span>{before}</span>
+                        <span className="term-cursor-char">{char}</span>
+                        <span>{after}</span>
+                      </span>
+                    )
+                  }
+
+                  return (
+                    <span className="term-typed-text">
+                      <span>{inputVal}</span>
+                      <span className="term-block-cursor" />
+                    </span>
+                  )
+                })()}
                 <input
                   ref={inputRef}
                   type="text"
                   className="term-real-input"
                   value={inputVal}
-                  onChange={(e) => setInputVal(e.target.value)}
-                  onKeyDown={handleKeyDown}
+                  onChange={(e) => {
+                    setInputVal(e.target.value)
+                    syncSelection(e.target)
+                  }}
+                  onKeyDown={(e) => {
+                    handleKeyDown(e)
+                    if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'Backspace', 'Delete'].includes(e.key)) {
+                      requestAnimationFrame(() => syncSelection())
+                    }
+                  }}
+                  onKeyUp={() => syncSelection()}
+                  onSelect={(e) => syncSelection(e.target)}
+                  onClick={(e) => syncSelection(e.target)}
                   disabled={loading}
                   autoComplete="off"
                   spellCheck="false"
