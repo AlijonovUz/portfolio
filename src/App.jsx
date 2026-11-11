@@ -26,9 +26,9 @@ const ALL = [
 ]
 const JOBS = [
   ['Backend developer', 'Raqamli Nazorat · 2026-yil aprel — hozir', [
-    'Masshtablanuvchi raqamli monitoring tizimlarini ishlab chiqish va qo‘llab-quvvatlash.',
-    'Murakkab xatolarni topib bartaraf etish, tizim barqarorligini ta’minlash.',
-    'Agile/Scrum jamoasida loyihalarni o‘z vaqtida yetkazish.',
+    'Masshtablanuvchi monitoring tizimlari va RESTful API larni loyihalash hamda qo‘llab-quvvatlash.',
+    'Tizimdagi murakkab nosozliklarni aniqlash (debugging), so‘rovlarni optimallashtirish va barqarorlikni ta’minlash.',
+    'Code review jarayonlarini olib borish va jamoa a’zolariga texnik mentorlik qilish.',
   ]],
   ['Backend mentor', 'Najot Ta’lim · 2025-yil noyabr — 2026-yil avgust', [
     'Talabalarga Python dasturlashda amaliy yordam berish.',
