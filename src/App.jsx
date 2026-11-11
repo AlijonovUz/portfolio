@@ -46,7 +46,7 @@ const EDU = {
   lines: ['Texnologiyalar: Python, Django, DRF, Docker, Git, PostgreSQL.', 'Amaliy loyihalar orqali backend ko‘nikmalarini mustahkamlagan.'],
 }
 const LANGS = [['O‘zbek tili', 'ona tili'], ['Ingliz tili', 'A2'], ['Rus tili', 'A2']]
-const RESUME_PDF = './resume.pdf' // public/resume.pdf
+const RESUME_PDF = '/resume.pdf' // public/resume.pdf
 /* ================================================== */
 
 const TUX = ['    .--.', '   |o_o |', '   |:_/ |', '  //   \\ \\', ' (|     | )', "/'\\_   _/'\\", '\\___)=(___/'].join('\n')
@@ -153,6 +153,9 @@ export default function App() {
   }, [cur])
 
   useEffect(() => {
+    if (window.location.pathname !== '/') {
+      window.history.replaceState(null, '', '/')
+    }
     const tick = () => setClock(new Date().toLocaleString('uz', { weekday: 'short', hour: '2-digit', minute: '2-digit' }))
     tick()
     const id = setInterval(tick, 30000)
