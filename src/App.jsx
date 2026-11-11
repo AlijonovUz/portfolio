@@ -165,21 +165,42 @@ export default function App() {
 
   const inputRef = useRef(null)
   const termRef = useRef(null)
+  const bottomAnchorRef = useRef(null)
 
   const scrollToBottom = () => {
     if (termRef.current) {
       termRef.current.scrollTop = termRef.current.scrollHeight
     }
+    bottomAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }
 
   useEffect(() => {
     scrollToBottom()
-    const t = setTimeout(scrollToBottom, 20)
-    return () => clearTimeout(t)
+    const t1 = setTimeout(scrollToBottom, 30)
+    const t2 = setTimeout(scrollToBottom, 120)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
   }, [history, cur, wizard, loading, initialCleared])
 
   useEffect(() => {
-    inputRef.current?.focus()
+    const focusInput = () => inputRef.current?.focus()
+    focusInput()
+    const t1 = setTimeout(focusInput, 50)
+    const t2 = setTimeout(focusInput, 200)
+
+    const handleGlobalClick = (e) => {
+      if (!e.target.closest('a, button')) {
+        inputRef.current?.focus()
+      }
+    }
+    window.addEventListener('click', handleGlobalClick)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+      window.removeEventListener('click', handleGlobalClick)
+    }
   }, [wizard, loading, cur])
 
   useEffect(() => {
@@ -702,21 +723,28 @@ export default function App() {
                 setInputVal('')
                 if (wizard) handleWizardInput(v)
                 else handleCommand(v)
+                setTimeout(scrollToBottom, 20)
               }}
               className="term-line"
             >
               {getPromptLabel()}
-              <input
-                ref={inputRef}
-                type="text"
-                className="term-in"
-                value={inputVal}
-                onChange={(e) => setInputVal(e.target.value)}
-                disabled={loading}
-                autoComplete="off"
-                spellCheck="false"
-              />
+              <div className="term-input-wrapper" onClick={() => inputRef.current?.focus()}>
+                <span className="term-typed-text">{inputVal}</span>
+                <span className="term-block-cursor" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  className="term-real-input"
+                  value={inputVal}
+                  onChange={(e) => setInputVal(e.target.value)}
+                  disabled={loading}
+                  autoComplete="off"
+                  spellCheck="false"
+                  autoFocus
+                />
+              </div>
             </form>
+            <div ref={bottomAnchorRef} style={{ height: 1 }} />
           </div>
         </div>
       </main>
