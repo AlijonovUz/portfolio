@@ -144,6 +144,19 @@ function parseCliArgs(text) {
   return tokens
 }
 
+function getLongestCommonPrefix(strs) {
+  if (!strs || strs.length === 0) return ''
+  if (strs.length === 1) return strs[0]
+  let prefix = strs[0]
+  for (let i = 1; i < strs.length; i++) {
+    while (!strs[i].toLowerCase().startsWith(prefix.toLowerCase())) {
+      prefix = prefix.slice(0, -1)
+      if (!prefix) return ''
+    }
+  }
+  return prefix
+}
+
 function outputs(go) {
   return {
     home: [
@@ -534,8 +547,8 @@ export default function App() {
     }
 
     // about.md / cat about.md
-    if (trimmed === 'cat about.md' || trimmed === 'about.md' || trimmed === './about.md' || trimmed === 'cat about/about.md') {
-      if (cur === 'about' || trimmed === 'cat about/about.md') {
+    if (trimmed === 'cat about.md' || trimmed === 'about.md' || trimmed === './about.md' || trimmed === 'cat about/about.md' || trimmed === 'cat about.m') {
+      if (cur === 'about' || cur === 'home' || trimmed === 'cat about/about.md') {
         addHistory([
           echoLine,
           <div key={Date.now() + 1} className="o">
@@ -554,8 +567,8 @@ export default function App() {
     }
 
     // projects.md / cat projects.md
-    if (trimmed === 'cat projects.md' || trimmed === 'projects.md' || trimmed === './projects.md' || trimmed === 'cat projects/projects.md') {
-      if (cur === 'projects' || trimmed === 'cat projects/projects.md') {
+    if (trimmed === 'cat projects.md' || trimmed === 'projects.md' || trimmed === './projects.md' || trimmed === 'cat projects/projects.md' || trimmed === 'cat projects.m') {
+      if (cur === 'projects' || cur === 'home' || trimmed === 'cat projects/projects.md') {
         addHistory([
           echoLine,
           <div key={Date.now() + 1} className="o">
@@ -574,8 +587,8 @@ export default function App() {
     }
 
     // meetly.md / cat meetly.md
-    if (trimmed === 'cat meetly.md' || trimmed === 'meetly.md' || trimmed === './meetly.md' || trimmed === 'cat projects/meetly.md') {
-      if (cur === 'projects' || trimmed === 'cat projects/meetly.md') {
+    if (trimmed === 'cat meetly.md' || trimmed === 'meetly.md' || trimmed === './meetly.md' || trimmed === 'cat projects/meetly.md' || trimmed === 'cat meetly.m') {
+      if (cur === 'projects' || cur === 'home' || trimmed === 'cat projects/meetly.md') {
         addHistory([
           echoLine,
           <div key={Date.now() + 1} className="o">
@@ -594,8 +607,8 @@ export default function App() {
     }
 
     // authly.md / cat authly.md
-    if (trimmed === 'cat authly.md' || trimmed === 'authly.md' || trimmed === './authly.md' || trimmed === 'cat projects/authly.md') {
-      if (cur === 'projects' || trimmed === 'cat projects/authly.md') {
+    if (trimmed === 'cat authly.md' || trimmed === 'authly.md' || trimmed === './authly.md' || trimmed === 'cat projects/authly.md' || trimmed === 'cat authly.m') {
+      if (cur === 'projects' || cur === 'home' || trimmed === 'cat projects/authly.md') {
         addHistory([
           echoLine,
           <div key={Date.now() + 1} className="o">
@@ -614,8 +627,8 @@ export default function App() {
     }
 
     // fragmently.md / cat fragmently.md
-    if (trimmed === 'cat fragmently.md' || trimmed === 'fragmently.md' || trimmed === './fragmently.md' || trimmed === 'cat projects/fragmently.md') {
-      if (cur === 'projects' || trimmed === 'cat projects/fragmently.md') {
+    if (trimmed === 'cat fragmently.md' || trimmed === 'fragmently.md' || trimmed === './fragmently.md' || trimmed === 'cat projects/fragmently.md' || trimmed === 'cat fragmently.m') {
+      if (cur === 'projects' || cur === 'home' || trimmed === 'cat projects/fragmently.md') {
         addHistory([
           echoLine,
           <div key={Date.now() + 1} className="o">
@@ -634,8 +647,8 @@ export default function App() {
     }
 
     // resume.md / cat resume.md
-    if (trimmed === 'cat resume.md' || trimmed === 'resume.md' || trimmed === './resume.md' || trimmed === 'cat resume/resume.md') {
-      if (cur === 'resume' || trimmed === 'cat resume/resume.md') {
+    if (trimmed === 'cat resume.md' || trimmed === 'resume.md' || trimmed === './resume.md' || trimmed === 'cat resume/resume.md' || trimmed === 'cat resume.m' || trimmed === 'cat resumem') {
+      if (cur === 'resume' || cur === 'home' || trimmed === 'cat resume/resume.md') {
         addHistory([
           echoLine,
           <div key={Date.now() + 1} className="o">
@@ -653,9 +666,21 @@ export default function App() {
       return
     }
 
+    // resume.pdf / cat resume.pdf
+    if (trimmed === 'cat resume.pdf' || trimmed === 'resume.pdf' || trimmed === './resume.pdf' || trimmed === 'cat resume/resume.pdf' || trimmed === 'cat resume.p' || trimmed === 'cat resumep') {
+      window.open(RESUME_PDF, '_blank')
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          <span className="u">[+]</span> resume.pdf ochilmoqda (yangi oynada)...
+        </div>,
+      ])
+      return
+    }
+
     // contact.md / cat contact.md
-    if (trimmed === 'cat contact.md' || trimmed === 'contact.md' || trimmed === './contact.md' || trimmed === 'cat contact/contact.md') {
-      if (cur === 'contact' || trimmed === 'cat contact/contact.md') {
+    if (trimmed === 'cat contact.md' || trimmed === 'contact.md' || trimmed === './contact.md' || trimmed === 'cat contact/contact.md' || trimmed === 'cat contact.m') {
+      if (cur === 'contact' || cur === 'home' || trimmed === 'cat contact/contact.md') {
         addHistory([
           echoLine,
           <div key={Date.now() + 1} className="o">
@@ -793,52 +818,75 @@ export default function App() {
     }
 
     // rm / rmdir / mkdir / touch / sudo / vim / reboot hazil javoblari
-    if (trimmed.startsWith('rm -rf') || trimmed.startsWith('rm -r') || trimmed === 'rm') {
+    if (trimmed.startsWith('rm -rf') || trimmed.startsWith('rm -r')) {
+      const rawTarget = trimmed.replace(/^rm\s+(-rf|-r)\s*/, '').trim()
+      let target = rawTarget || '/'
+      if (target === 'resume.m' || target === 'resumem') target = 'resume.md'
+      else if (target === 'resume.p' || target === 'resumep') target = 'resume.pdf'
+      else if (target === 'about.m') target = 'about.md'
+      else if (target === 'projects.m') target = 'projects.md'
+      else if (target === 'contact.m') target = 'contact.md'
+
       addHistory([
         echoLine,
         <div key={Date.now() + 1} className="term-msg">
-          <span className="k">rm:</span> ruxsat berilmadi: bu production server, portfolioni o‘chirib bo‘lmaydi :)
+          <span className="k">rm:</span> cannot remove &apos;{target}&apos;: Read-only file system (portfolioni o‘chirib bo‘lmaydi :)
         </div>,
       ])
       return
     }
 
     if (trimmed.startsWith('rm ') || trimmed === 'rm') {
-      const target = trimmed.startsWith('rm ') ? trimmed.slice(3).trim() : ''
+      const rawTarget = trimmed.startsWith('rm ') ? trimmed.slice(3).trim() : ''
+      let target = rawTarget || 'file'
+      if (target === 'resume.m' || target === 'resumem') target = 'resume.md'
+      else if (target === 'resume.p' || target === 'resumep') target = 'resume.pdf'
+      else if (target === 'about.m') target = 'about.md'
+      else if (target === 'projects.m') target = 'projects.md'
+      else if (target === 'contact.m') target = 'contact.md'
+
       addHistory([
         echoLine,
         <div key={Date.now() + 1} className="term-msg">
-          <span className="k">rm:</span> cannot remove &apos;{target || 'file'}&apos;: Read-only file system (faylni o‘chirish taqiqlangan :)
+          <span className="k">rm:</span> cannot remove &apos;{target}&apos;: Read-only file system (faylni o‘chirish taqiqlangan :)
         </div>,
       ])
       return
     }
 
     if (trimmed.startsWith('mkdir') || trimmed === 'mkdir') {
+      const rawTarget = trimmed.startsWith('mkdir ') ? trimmed.slice(6).trim() : ''
+      const target = rawTarget || 'new_dir'
       addHistory([
         echoLine,
         <div key={Date.now() + 1} className="term-msg">
-          <span className="k">mkdir:</span> cannot create directory: Read-only file system (papka yaratish cheklangan :)
+          <span className="k">mkdir:</span> cannot create directory &apos;{target}&apos;: Read-only file system (papka yaratish cheklangan :)
         </div>,
       ])
       return
     }
 
     if (trimmed.startsWith('rmdir') || trimmed === 'rmdir') {
+      const rawTarget = trimmed.startsWith('rmdir ') ? trimmed.slice(6).trim() : ''
+      const target = rawTarget || 'dir'
       addHistory([
         echoLine,
         <div key={Date.now() + 1} className="term-msg">
-          <span className="k">rmdir:</span> failed to remove: Read-only file system (papkalarni o‘chirib bo‘lmaydi :)
+          <span className="k">rmdir:</span> failed to remove &apos;{target}&apos;: Read-only file system (papkalarni o‘chirib bo‘lmaydi :)
         </div>,
       ])
       return
     }
 
     if (trimmed.startsWith('touch ') || trimmed === 'touch') {
+      const rawTarget = trimmed.startsWith('touch ') ? trimmed.slice(6).trim() : ''
+      let target = rawTarget || 'new_file'
+      if (target === 'resume.m' || target === 'resumem') target = 'resume.md'
+      else if (target === 'resume.p' || target === 'resumep') target = 'resume.pdf'
       addHistory([
         echoLine,
         <div key={Date.now() + 1} className="term-msg">
-          <span className="k">touch:</span> cannot touch: Read-only file system (fayl yaratish cheklangan :)
+          <span className="k">touch:</span> cannot touch &apos;{target}&apos;: Read-only file system (fayl yaratish cheklangan :)
         </div>,
       ])
       return
@@ -855,10 +903,21 @@ export default function App() {
     }
 
     if (trimmed.startsWith('nano') || trimmed.startsWith('vim') || trimmed.startsWith('vi ') || trimmed === 'vi' || trimmed === 'vim') {
+      let target = ''
+      if (trimmed.startsWith('nano ')) target = trimmed.slice(5).trim()
+      else if (trimmed.startsWith('vim ')) target = trimmed.slice(4).trim()
+      else if (trimmed.startsWith('vi ')) target = trimmed.slice(3).trim()
+      if (target === 'resume.m' || target === 'resumem') target = 'resume.md'
+      else if (target === 'resume.p' || target === 'resumep') target = 'resume.pdf'
+
+      const targetMsg = target
+        ? <><span className="k">vim:</span> &apos;{target}&apos; tahrirlash cheklangan (read-only portfolio). Chiqish uchun &apos;:q!&apos; shart emas :)</>
+        : <>tahrirlash cheklangan (read-only portfolio). Chiqish uchun &apos;:q!&apos; shart emas :)</>
+
       addHistory([
         echoLine,
         <div key={Date.now() + 1} className="term-msg d">
-          tahrirlash cheklangan (read-only portfolio). Chiqish uchun &apos;:q!&apos; shart emas :)
+          {targetMsg}
         </div>,
       ])
       return
@@ -1053,7 +1112,7 @@ export default function App() {
       let dirs = []
       let files = []
       if (cur === 'home') {
-        dirs = ['about', 'projects', 'resume', 'contact']
+        dirs = ['about/', 'projects/', 'resume/', 'contact/']
         files = [
           'README.md',
           'about.md',
@@ -1062,6 +1121,7 @@ export default function App() {
           'authly.md',
           'fragmently.md',
           'resume.md',
+          'resume.pdf',
           'contact.md',
           'about/about.md',
           'projects/projects.md',
@@ -1085,55 +1145,97 @@ export default function App() {
         files = ['contact.md']
       }
 
-      // 1) cd <dir>
-      if (val.startsWith('cd ')) {
-        const prefix = val.slice(3).trimStart().replace(/\/+$/, '')
-        const pool = ['..', '~', ...dirs]
-        const match = pool.find((d) => d.toLowerCase().startsWith(prefix.toLowerCase()))
-        if (match) {
-          const suffix = (match === '..' || match === '~') ? '' : '/'
-          setInputVal(`cd ${match}${suffix}`)
+      // tryComplete yordamchi funksiyasi: LCP va Linux Bash completion
+      const tryComplete = (cmdPrefix, rawPrefix, pool) => {
+        const cleanPrefix = rawPrefix.trimStart()
+        if (!cleanPrefix) {
+          if (cmdPrefix === 'cat ') {
+            const defaultFile = cur === 'home' ? 'README.md' : (cur === 'projects' ? 'projects.md' : `${cur}.md`)
+            setInputVal(`cat ${defaultFile}`)
+            return true
+          }
+          return false
         }
-        return
+
+        // 1. Mos keluvchilarni topish (avval case-sensitive, keyin case-insensitive)
+        let matches = pool.filter((item) =>
+          item.startsWith(cleanPrefix) || item.replace(/^.*\//, '').startsWith(cleanPrefix)
+        )
+        if (matches.length === 0) {
+          matches = pool.filter((item) =>
+            item.toLowerCase().startsWith(cleanPrefix.toLowerCase()) ||
+            item.replace(/^.*\//, '').toLowerCase().startsWith(cleanPrefix.toLowerCase())
+          )
+        }
+        if (matches.length === 0 && /^resume[mp]/i.test(cleanPrefix)) {
+          const alt = cleanPrefix.replace(/^resume([mp])/i, 'resume.$1')
+          matches = pool.filter((item) => item.toLowerCase().startsWith(alt.toLowerCase()))
+        }
+        if (matches.length === 0) return false
+
+        // 2. Yagona moslik bo'lsa
+        if (matches.length === 1) {
+          setInputVal(`${cmdPrefix}${matches[0]}`)
+          return true
+        }
+
+        // 3. Bir nechta moslik bo'lsa: Longest Common Prefix (LCP)
+        const lcp = getLongestCommonPrefix(matches)
+        if (lcp && lcp.length > cleanPrefix.length) {
+          setInputVal(`${cmdPrefix}${lcp}`)
+          return true
+        }
+
+        // 4. Allaqachon LCP darajasida bo'lsa, Tab bosilganda navbatdagi variantga o'tish (cycle)
+        const currIdx = matches.indexOf(cleanPrefix)
+        const nextIdx = (currIdx + 1) % matches.length
+        setInputVal(`${cmdPrefix}${matches[nextIdx]}`)
+        return true
       }
 
-      // 2) cat <file>
-      if (val === 'cat') {
-        setInputVal('cat ')
-        return
-      }
+      // Prefiksli buyruqlarni tekshirish
+      const prefixConfigs = [
+        { prefix: 'rm -rf ', pool: [...dirs, ...files] },
+        { prefix: 'rm -r ', pool: [...dirs, ...files] },
+        { prefix: 'rm ', pool: [...dirs, ...files] },
+        { prefix: 'touch ', pool: files },
+        { prefix: 'mkdir ', pool: dirs },
+        { prefix: 'rmdir ', pool: dirs },
+        { prefix: 'nano ', pool: files },
+        { prefix: 'vim ', pool: files },
+        { prefix: 'vi ', pool: files },
+        { prefix: 'cat ', pool: files },
+        { prefix: 'cd ', pool: ['..', '~', ...dirs] },
+      ]
 
-      if (val.startsWith('cat ')) {
-        const rawPrefix = val.slice(4).trimStart()
-        const cleanPrefix = rawPrefix.replace(/^\.\//, '')
-
-        if (!rawPrefix) {
-          const defaultFile = cur === 'home' ? 'README.md' : (cur === 'projects' ? 'projects.md' : `${cur}.md`)
-          setInputVal(`cat ${defaultFile}`)
+      for (const cfg of prefixConfigs) {
+        if (val.startsWith(cfg.prefix)) {
+          const raw = val.slice(cfg.prefix.length)
+          tryComplete(cfg.prefix, raw, cfg.pool)
           return
         }
-
-        const match = files.find((f) => {
-          const lowerF = f.toLowerCase()
-          const lowerP = cleanPrefix.toLowerCase()
-          return lowerF.startsWith(lowerP) || lowerF.replace(/^.*\//, '').startsWith(lowerP)
-        })
-
-        if (match) {
-          const prefixToKeep = rawPrefix.startsWith('./') ? './' : ''
-          setInputVal(`cat ${prefixToKeep}${match}`)
-        }
-        return
       }
 
-      // 3) Boshqa alohida fayl, papka yoki buyruqlar (masalan: R -> README.md, a -> about/, he -> help)
-      const commands = ['help', 'clear', 'send-mail', 'pwd', 'ls', 'cd', 'cat', 'whoami', 'uname', 'uptime', 'date', 'history']
-      const dirsWithSlash = dirs.map((d) => `${d}/`)
-      const pool = [...files, ...dirsWithSlash, ...commands]
-      const match = pool.find((item) => item.toLowerCase().startsWith(trimmed.toLowerCase()))
-      if (match) {
-        setInputVal(match)
-      }
+      // Maxsus holatlar (bo'sh argumentli buyruqlar)
+      if (val === 'cat') { setInputVal('cat '); return }
+      if (val === 'cd') { setInputVal('cd '); return }
+      if (val === 'rm') { setInputVal('rm '); return }
+      if (val === 'rm -') { setInputVal('rm -rf '); return }
+      if (val === 'vim') { setInputVal('vim '); return }
+      if (val === 'nano') { setInputVal('nano '); return }
+      if (val === 'touch') { setInputVal('touch '); return }
+      if (val === 'mkdir') { setInputVal('mkdir '); return }
+      if (val === 'rmdir') { setInputVal('rmdir '); return }
+
+      // Prefikssiz, alohida yozilayotgan buyruq yoki fayl/papka nomi
+      const commands = [
+        'help', 'clear', 'send-mail', 'pwd', 'ls', 'cd', 'cat',
+        'whoami', 'uname', 'uptime', 'date', 'history',
+        'rm -rf', 'rm', 'mkdir', 'rmdir', 'touch', 'vim', 'nano', 'sudo'
+      ]
+      const standalonePool = [...files, ...dirs, ...commands]
+      tryComplete('', trimmed, standalonePool)
+      return
     }
   }
 
