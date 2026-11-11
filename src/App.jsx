@@ -72,6 +72,17 @@ const PROJECTS = [
     status: 'production · online',
     access: 'private repo',
   },
+  {
+    slug: 'fragmently',
+    name: 'Fragmently',
+    headline: 'Fragment xizmatlarini avtomatlashtirish va Public API platformasi',
+    desc: 'Dasturchilar uchun Fragment platformasi xizmatlarini avtomatlashtirib beruvchi tizim. Telegram Stars, Telegram Premium va boshqa xizmatlarni Telegram botlar hamda veb-saytlar uchun qulay va sifatli ommaviy (public) RESTful API orqali integratsiya qilish imkonini beradi.',
+    note: 'Dasturchilar va tashqi tizimlar uchun ommaviy (public) API infratuzilmasi.',
+    stack: ['Python', 'Django', 'DRF', 'FastAPI', 'PostgreSQL', 'Docker'],
+    url: 'https://fragmently.uz',
+    status: 'production · online',
+    access: 'private repo',
+  },
 ]
 /* ================================================== */
 
@@ -386,9 +397,10 @@ export default function App() {
         {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>~ (home)</span><br /><br />
         <span className="d">Files:</span><br />
         {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>README.md</span><span>about.md</span><br />
-        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>projects.md</span><span>resume.md</span><br />
-        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>meetly.md</span><span>authly.md</span><br />
-        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>contact.md</span><span>resume.pdf</span>
+        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>projects.md</span><span>meetly.md</span><br />
+        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>authly.md</span><span>fragmently.md</span><br />
+        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>resume.md</span><span>contact.md</span><br />
+        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>resume.pdf</span>
       </div>,
     ])
   }
@@ -434,7 +446,8 @@ export default function App() {
           <div key={Date.now() + 1} className="term-msg">
             <span style={{ marginRight: 24 }}>projects.md</span>
             <span style={{ marginRight: 24 }}>meetly.md</span>
-            <span>authly.md</span>
+            <span style={{ marginRight: 24 }}>authly.md</span>
+            <span>fragmently.md</span>
           </div>
         )
       } else if (cur === 'resume') {
@@ -597,6 +610,26 @@ export default function App() {
           echoLine,
           <div key={Date.now() + 1} className="term-msg">
             cat: authly.md: No such file or directory. (<span className="h">cd projects</span> qiling)
+          </div>,
+        ])
+      }
+      return
+    }
+
+    // fragmently.md / cat fragmently.md
+    if (trimmed === 'cat fragmently.md' || trimmed === 'fragmently.md' || trimmed === './fragmently.md' || trimmed === 'cat projects/fragmently.md') {
+      if (cur === 'projects' || trimmed === 'cat projects/fragmently.md') {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="o">
+            {singleProjectOutput('fragmently')}
+          </div>,
+        ])
+      } else {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            cat: fragmently.md: No such file or directory. (<span className="h">cd projects</span> qiling)
           </div>,
         ])
       }
@@ -932,13 +965,13 @@ export default function App() {
       let files = []
       if (cur === 'home') {
         dirs = ['about', 'projects', 'resume', 'contact']
-        files = ['README.md', 'about.md', 'projects.md', 'meetly.md', 'authly.md', 'resume.md', 'contact.md']
+        files = ['README.md', 'about.md', 'projects.md', 'meetly.md', 'authly.md', 'fragmently.md', 'resume.md', 'contact.md']
       } else if (cur === 'about') {
         dirs = []
         files = ['about.md']
       } else if (cur === 'projects') {
         dirs = []
-        files = ['projects.md', 'meetly.md', 'authly.md']
+        files = ['projects.md', 'meetly.md', 'authly.md', 'fragmently.md']
       } else if (cur === 'resume') {
         dirs = []
         files = ['resume.md', 'resume.pdf']
