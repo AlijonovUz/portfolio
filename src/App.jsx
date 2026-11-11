@@ -38,29 +38,29 @@ const PROJECTS = [
 ]
 
 const JOBS = [
-  ['O‘zbekiston Respublikasi Adliya vazirligi', '2023 - 2024 · Backend developer', [
-    'Elektron hukumat tizimlari va ichki boshqaruv axborot tizimlari backend qismi',
-    'Davlat xizmatlari integratsiyasi, xavfsizlik va barqarorlik talablari',
+  ['Backend developer', 'Raqamli Nazorat · 2026-yil aprel — hozir', [
+    'Masshtablanuvchi monitoring tizimlari va RESTful API larni loyihalash hamda qo‘llab-quvvatlash.',
+    'Tizimdagi murakkab nosozliklarni aniqlash (debugging), so‘rovlarni optimallashtirish va barqarorlikni ta’minlash.',
+    'Code review jarayonlarini olib borish va jamoa a’zolariga texnik mentorlik qilish.',
   ]],
-  ['Fintech / Startups', '2022 - 2023 · Python / Django developer', [
-    'To‘lov tizimlari bilan integratsiyalar (Payme, Click, Uzum)',
-    'Mikroxizmatlar arxitekturasi va RESTful API loyihalash',
+  ['Backend mentor', 'Najot Ta’lim · 2025-yil noyabr — 2026-yil avgust', [
+    'Talabalarga Python dasturlashda amaliy yordam berish.',
+    'Uy vazifalarini tekshirish va kodni tahlil qilib, sifatini oshirish.',
+    'Mustaqil ishlash va muammo yechish ko‘nikmalarini rivojlantirish.',
   ]],
-  ['Freelance & IT Outsourcing', '2021 - 2022 · Junior backend developer', [
-    'Telegram botlar (aiogram), kichik korxona CRM tizimlari',
-    'PostgreSQL ma’lumotlar bazalarini loyihalash va optimallash',
+  ['Freelance developer', 'Frilans · 2021 — 2025', [
+    'Buyurtmachilar uchun Telegram botlar yaratish va ishga tushirish.',
+    'Loyihalarni mustaqil olib borib, tayyor holda yetkazib berish.',
   ]],
 ]
 
 const MAIN = [
-  ['Dasturlash tillari', ['Python', 'PHP', 'C#']],
-  ['Backend frameworklar', ['Django', 'DRF', 'FastAPI', 'Laravel', '.NET']],
-  ['Ma’lumotlar bazasi', ['PostgreSQL', 'MySQL', 'SQLite']],
-  ['Instrumentlar', ['Git', 'GitHub', 'GitLab', 'Redis', 'Celery', 'WebSockets', 'Docker', 'Docker Compose']],
+  ['languages', ['Python', 'PHP', 'C#']],
+  ['databases', ['PostgreSQL', 'MySQL']],
 ]
 
 const ALL = [
-  ['languages', ['Python', 'PHP', 'C#', 'SQL', 'Bash']],
+  ['languages', ['Python', 'PHP', 'C#']],
   ['frameworks', ['Django', 'DRF', 'FastAPI', 'Laravel', '.NET']],
   ['web', ['HTML', 'CSS', 'Bootstrap', 'TailwindCSS', 'JavaScript']],
   ['databases', ['PostgreSQL', 'MySQL', 'SQLite']],
@@ -69,22 +69,22 @@ const ALL = [
 ]
 
 const LINKS = [
-  ['email', 'alijonov.me@gmail.com', 'mailto:alijonov.me@gmail.com'],
-  ['telegram', '@alijonov', 'https://t.me/alijonov'],
-  ['github', 'github.com/alijonov', 'https://github.com/alijonov'],
-  ['linkedin', 'linkedin.com/in/alijonov', 'https://linkedin.com/in/alijonov'],
+  ['email', 'me@alijonov.uz', 'mailto:me@alijonov.uz'],
+  ['telegram', '@AlijonovUz', 'https://t.me/AlijonovUz'],
+  ['github', 'github.com/AlijonovUz', 'https://github.com/AlijonovUz'],
+  ['linkedin', 'linkedin.com/in/alijonovuz', 'https://linkedin.com/in/alijonovuz'],
+  ['instagram', 'instagram.com/alijonov.uz_', 'https://instagram.com/alijonov.uz_'],
 ]
 
 const EDU = {
-  title: 'Bakalavr — Axborot xavfsizligi',
-  where: 'TATU Farg‘ona filiali · 2020 - 2024',
-  lines: [
-    'Kriptografiya, tarmoq xavfsizligi, dasturiy ta’minot xavfsizligi asoslari',
-  ],
+  title: 'Backend Python (Standard)',
+  where: 'Najot Ta’lim · 2024 — 2025',
+  lines: ['Texnologiyalar: Python, Django, DRF, Docker, Git, PostgreSQL.', 'Amaliy loyihalar orqali backend ko‘nikmalarini mustahkamlagan.'],
 }
 
-const RESUME_PDF = '/resume.pdf'
-const LOCATION = 'Farg‘ona, O‘zbekiston'
+const LANGS = [['O‘zbek tili', 'ona tili'], ['Ingliz tili', 'A2'], ['Rus tili', 'A2']]
+const RESUME_PDF = '/resume.pdf' // public/resume.pdf
+const LOCATION = 'Oltiariq, Farg‘ona viloyati, O‘zbekiston'
 
 function singleProjectOutput(slug) {
   const p = PROJECTS.find((x) => x.slug === slug)
@@ -1814,10 +1814,30 @@ function TerminalWindow({
 /* ================== MAIN APP (DESKTOP WINDOW MANAGER) ================== */
 export default function App() {
   const [clock, setClock] = useState('')
-  const [windows, setWindows] = useState([])
-  const [activeId, setActiveId] = useState(null)
+  const [windows, setWindows] = useState(() => {
+    const isSmall = typeof window !== 'undefined' && window.innerWidth <= 640
+    const w = typeof window !== 'undefined' ? (isSmall ? window.innerWidth : Math.min(940, window.innerWidth - 32)) : 800
+    const h = typeof window !== 'undefined' ? (isSmall ? window.innerHeight : Math.min(620, window.innerHeight - 150)) : 520
+    const initX = typeof window !== 'undefined' ? Math.max(16, (window.innerWidth - w) / 2) : 24
+    const initY = typeof window !== 'undefined' ? Math.max(16, (window.innerHeight - 100 - h) / 2) : 24
+
+    return [
+      {
+        id: 'term-1',
+        cur: 'home',
+        x: initX,
+        y: initY,
+        width: w,
+        height: h,
+        zIndex: 10,
+        isMaximized: false,
+        isMinimized: false,
+      },
+    ]
+  })
+  const [activeId, setActiveId] = useState('term-1')
   const [maxZIndex, setMaxZIndex] = useState(10)
-  const [isMobile, setIsMobile] = useState(false)
+  const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 640)
   const goToRegistryRef = useRef({})
 
   const registerGoTo = (winId, fn) => {
@@ -1836,31 +1856,6 @@ export default function App() {
     checkMobile()
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-
-  // Boshlang'ich bitta oyna yaratish
-  useEffect(() => {
-    const isSmall = window.innerWidth <= 640
-    const w = isSmall ? window.innerWidth : Math.min(940, window.innerWidth - 32)
-    const h = isSmall ? window.innerHeight : Math.min(620, window.innerHeight - 150)
-    const initX = Math.max(16, (window.innerWidth - w) / 2)
-    const initY = Math.max(16, (window.innerHeight - 100 - h) / 2)
-
-    const firstId = 'term-1'
-    setWindows([
-      {
-        id: firstId,
-        cur: 'home',
-        x: initX,
-        y: initY,
-        width: w,
-        height: h,
-        zIndex: 10,
-        isMaximized: false,
-        isMinimized: false,
-      },
-    ])
-    setActiveId(firstId)
   }, [])
 
   // Soat
