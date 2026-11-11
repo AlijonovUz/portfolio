@@ -1,58 +1,10 @@
-import { useEffect, useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
-/* ====== MA'LUMOTLARNI SHU YERDA O'ZGARTIRING ====== */
-const LINKS = [
-  ['email', 'me@alijonov.uz', 'mailto:me@alijonov.uz'],
-  ['telegram', '@AlijonovUz', 'https://t.me/AlijonovUz'],
-  ['github', 'github.com/AlijonovUz', 'https://github.com/AlijonovUz'],
-  ['linkedin', 'linkedin.com/in/alijonovuz', 'https://linkedin.com/in/alijonovuz'],
-  ['instagram', 'instagram.com/alijonov.uz_', 'https://instagram.com/alijonov.uz_'],
-]
-const LOCATION = 'Oltiariq, Farg‘ona viloyati, O‘zbekiston'
-
-// Resume bo'limida: asosiy ko'nikmalar
-const MAIN = [
-  ['languages', ['Python', 'PHP', 'C#']],
-  ['databases', ['PostgreSQL', 'MySQL']],
-]
-// About bo'limida: to'liq texnologiyalar
-const ALL = [
-  ['languages', ['Python', 'PHP', 'C#']],
-  ['frameworks', ['Django', 'DRF', 'FastAPI', 'Laravel', '.NET']],
-  ['web', ['HTML', 'CSS', 'Bootstrap', 'TailwindCSS', 'JavaScript']],
-  ['databases', ['PostgreSQL', 'MySQL', 'SQLite']],
-  ['tools', ['Git', 'GitHub', 'GitLab', 'Redis', 'Celery', 'WebSockets']],
-  ['devops', ['Docker', 'Docker Compose']],
-]
-const JOBS = [
-  ['Backend developer', 'Raqamli Nazorat · 2026-yil aprel — hozir', [
-    'Masshtablanuvchi monitoring tizimlari va RESTful API larni loyihalash hamda qo‘llab-quvvatlash.',
-    'Tizimdagi murakkab nosozliklarni aniqlash (debugging), so‘rovlarni optimallashtirish va barqarorlikni ta’minlash.',
-    'Code review jarayonlarini olib borish va jamoa a’zolariga texnik mentorlik qilish.',
-  ]],
-  ['Backend mentor', 'Najot Ta’lim · 2025-yil noyabr — 2026-yil avgust', [
-    'Talabalarga Python dasturlashda amaliy yordam berish.',
-    'Uy vazifalarini tekshirish va kodni tahlil qilib, sifatini oshirish.',
-    'Mustaqil ishlash va muammo yechish ko‘nikmalarini rivojlantirish.',
-  ]],
-  ['Freelance developer', 'Frilans · 2021 — 2025', [
-    'Buyurtmachilar uchun Telegram botlar yaratish va ishga tushirish.',
-    'Loyihalarni mustaqil olib borib, tayyor holda yetkazib berish.',
-  ]],
-]
-const EDU = {
-  title: 'Backend Python (Standard)',
-  where: 'Najot Ta’lim · 2024 — 2025',
-  lines: ['Texnologiyalar: Python, Django, DRF, Docker, Git, PostgreSQL.', 'Amaliy loyihalar orqali backend ko‘nikmalarini mustahkamlagan.'],
-}
-const LANGS = [['O‘zbek tili', 'ona tili'], ['Ingliz tili', 'A2'], ['Rus tili', 'A2']]
-const RESUME_PDF = '/resume.pdf' // public/resume.pdf
-
-// Loyihalar (Projects)
+/* ================== MA'LUMOTLAR VA KONSTANTALAR ================== */
 const PROJECTS = [
   {
-    slug: 'meetly',
     name: 'Meetly',
+    slug: 'meetly',
     headline: 'Onlayn video va audio uchrashuvlar platformasi',
     desc: 'Konferensiya davomida tasvir va ovoz qotmasligi, kechikishlar minimal bo‘lishi uchun WebRTC hamda zamonaviy SFU (Selective Forwarding Unit) arxitekturasi asosida qurilgan. Video/audio oqimlarni har bir ishtirokchiga alohida optimallab, yuqori tezlikda tarqatib beradi.',
     note: 'Muloqot qulayligi va to‘liq imkoniyatlar uchun ayni bosqichda faqat kompyuter (desktop) brauzerlarida ishlaydi.',
@@ -62,8 +14,8 @@ const PROJECTS = [
     access: 'private repo',
   },
   {
-    slug: 'authly',
     name: 'Authly',
+    slug: 'authly',
     headline: 'Yagona identifikatsiya va OAuth SSO tizimi',
     desc: 'Loyihalarni bitta ekotizimga birlashtirish va xavfsiz kirishni ta’minlash uchun yozilgan. Kriptografik tokenlar va xavfsiz avtorizatsiya standartlari asosida ishlaydi. O‘zingizning tashqi loyihalaringizga ham avtorizatsiya mexanizmi sifatida bemalol integratsiya qila olasiz.',
     note: 'Yagona SSO, OAuth 2.0 / OpenID Connect standartlari va xavfsiz tokenlar.',
@@ -73,8 +25,8 @@ const PROJECTS = [
     access: 'private repo',
   },
   {
-    slug: 'fragmently',
     name: 'Fragmently',
+    slug: 'fragmently',
     headline: 'Fragment xizmatlarini avtomatlashtirish va Public API platformasi',
     desc: 'Dasturchilar uchun Fragment platformasi xizmatlarini avtomatlashtirib beruvchi tizim. Telegram Stars, Telegram Premium va boshqa xizmatlarni Telegram botlar hamda veb-saytlar uchun qulay va sifatli ommaviy (public) RESTful API orqali integratsiya qilish imkonini beradi.',
     note: 'Dasturchilar va tashqi tizimlar uchun ommaviy (public) API infratuzilmasi.',
@@ -84,7 +36,55 @@ const PROJECTS = [
     access: 'private repo',
   },
 ]
-/* ================================================== */
+
+const JOBS = [
+  ['O‘zbekiston Respublikasi Adliya vazirligi', '2023 - 2024 · Backend developer', [
+    'Elektron hukumat tizimlari va ichki boshqaruv axborot tizimlari backend qismi',
+    'Davlat xizmatlari integratsiyasi, xavfsizlik va barqarorlik talablari',
+  ]],
+  ['Fintech / Startups', '2022 - 2023 · Python / Django developer', [
+    'To‘lov tizimlari bilan integratsiyalar (Payme, Click, Uzum)',
+    'Mikroxizmatlar arxitekturasi va RESTful API loyihalash',
+  ]],
+  ['Freelance & IT Outsourcing', '2021 - 2022 · Junior backend developer', [
+    'Telegram botlar (aiogram), kichik korxona CRM tizimlari',
+    'PostgreSQL ma’lumotlar bazalarini loyihalash va optimallash',
+  ]],
+]
+
+const MAIN = [
+  ['Dasturlash tillari', ['Python', 'PHP', 'C#']],
+  ['Backend frameworklar', ['Django', 'DRF', 'FastAPI', 'Laravel', '.NET']],
+  ['Ma’lumotlar bazasi', ['PostgreSQL', 'MySQL', 'SQLite']],
+  ['Instrumentlar', ['Git', 'GitHub', 'GitLab', 'Redis', 'Celery', 'WebSockets', 'Docker', 'Docker Compose']],
+]
+
+const ALL = [
+  ['languages', ['Python', 'PHP', 'C#', 'SQL', 'Bash']],
+  ['frameworks', ['Django', 'DRF', 'FastAPI', 'Laravel', '.NET']],
+  ['web', ['HTML', 'CSS', 'Bootstrap', 'TailwindCSS', 'JavaScript']],
+  ['databases', ['PostgreSQL', 'MySQL', 'SQLite']],
+  ['tools', ['Git', 'GitHub', 'GitLab', 'Redis', 'Celery', 'WebSockets']],
+  ['devops', ['Docker', 'Docker Compose']],
+]
+
+const LINKS = [
+  ['email', 'alijonov.me@gmail.com', 'mailto:alijonov.me@gmail.com'],
+  ['telegram', '@alijonov', 'https://t.me/alijonov'],
+  ['github', 'github.com/alijonov', 'https://github.com/alijonov'],
+  ['linkedin', 'linkedin.com/in/alijonov', 'https://linkedin.com/in/alijonov'],
+]
+
+const EDU = {
+  title: 'Bakalavr — Axborot xavfsizligi',
+  where: 'TATU Farg‘ona filiali · 2020 - 2024',
+  lines: [
+    'Kriptografiya, tarmoq xavfsizligi, dasturiy ta’minot xavfsizligi asoslari',
+  ],
+}
+
+const RESUME_PDF = '/resume.pdf'
+const LOCATION = 'Farg‘ona, O‘zbekiston'
 
 function singleProjectOutput(slug) {
   const p = PROJECTS.find((x) => x.slug === slug)
@@ -139,14 +139,15 @@ function parseCliArgs(text) {
   const re = /[^\s"']+|"([^"]*)"|'([^']*)'/g
   let m
   while ((m = re.exec(text)) !== null) {
-    tokens.push(m[1] !== undefined ? m[1] : (m[2] !== undefined ? m[2] : m[0]))
+    if (m[1] !== undefined) tokens.push(m[1])
+    else if (m[2] !== undefined) tokens.push(m[2])
+    else tokens.push(m[0])
   }
   return tokens
 }
 
 function getLongestCommonPrefix(strs) {
   if (!strs || strs.length === 0) return ''
-  if (strs.length === 1) return strs[0]
   let prefix = strs[0]
   for (let i = 1; i < strs.length; i++) {
     while (!strs[i].toLowerCase().startsWith(prefix.toLowerCase())) {
@@ -155,6 +156,65 @@ function getLongestCommonPrefix(strs) {
     }
   }
   return prefix
+}
+
+function resolveCd(targetArg, currentCur) {
+  const raw = (targetArg || '').trim()
+  if (!raw || raw === '~' || raw === '/' || raw === '/root' || raw === 'home') {
+    return { success: true, newCur: 'home' }
+  }
+  if (raw === '.' || raw === './') {
+    return { success: true, newCur: currentCur }
+  }
+  if (raw === '..' || raw === '../') {
+    return { success: true, newCur: 'home' }
+  }
+
+  // Absolute / home-relative
+  if (raw.startsWith('~/') || raw.startsWith('/root/')) {
+    const sub = raw.replace(/^(~\/|\/root\/)/, '').replace(/\/+$/, '')
+    if (!sub) return { success: true, newCur: 'home' }
+    if (['about', 'projects', 'resume', 'contact'].includes(sub)) {
+      return { success: true, newCur: sub }
+    }
+    return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
+  }
+
+  // Parent-relative
+  if (raw.startsWith('../')) {
+    const sub = raw.replace(/^\.\.\//, '').replace(/\/+$/, '')
+    if (currentCur === 'home') {
+      return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
+    }
+    if (!sub) return { success: true, newCur: 'home' }
+    if (['about', 'projects', 'resume', 'contact'].includes(sub)) {
+      return { success: true, newCur: sub }
+    }
+    return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
+  }
+
+  // Current-relative
+  if (raw.startsWith('./')) {
+    const sub = raw.replace(/^\.\//, '').replace(/\/+$/, '')
+    if (currentCur === 'home' && ['about', 'projects', 'resume', 'contact'].includes(sub)) {
+      return { success: true, newCur: sub }
+    }
+    return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
+  }
+
+  // Direct bare name
+  const cleanBare = raw.replace(/\/+$/, '')
+  if (['about', 'projects', 'resume', 'contact'].includes(cleanBare)) {
+    if (currentCur === 'home') {
+      return { success: true, newCur: cleanBare }
+    }
+    if (cleanBare === currentCur) {
+      return { success: false, error: `bash: cd: ${targetArg}: No such file or directory (allaqachon ~/${cleanBare} papkasidasiz)` }
+    }
+    return { success: false, error: `bash: cd: ${targetArg}: No such file or directory (avval cd .. yoki cd ../${cleanBare} qiling)` }
+  }
+
+  return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
 }
 
 function outputs(go) {
@@ -261,71 +321,23 @@ function outputs(go) {
   }
 }
 
-function resolveCd(targetArg, currentCur) {
-  const raw = (targetArg || '').trim()
-  if (!raw || raw === '~' || raw === '/' || raw === '/root' || raw === 'home') {
-    return { success: true, newCur: 'home' }
-  }
-  if (raw === '.' || raw === './') {
-    return { success: true, newCur: currentCur }
-  }
-  if (raw === '..' || raw === '../') {
-    return { success: true, newCur: 'home' }
-  }
-
-  // Absolute / home-relative: ~/projects, /root/projects
-  if (raw.startsWith('~/') || raw.startsWith('/root/')) {
-    const sub = raw.replace(/^(~\/|\/root\/)/, '').replace(/\/+$/, '')
-    if (!sub) return { success: true, newCur: 'home' }
-    if (['about', 'projects', 'resume', 'contact'].includes(sub)) {
-      return { success: true, newCur: sub }
-    }
-    return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
-  }
-
-  // Parent-relative: ../projects, ../resume
-  if (raw.startsWith('../')) {
-    const sub = raw.replace(/^\.\.\//, '').replace(/\/+$/, '')
-    if (currentCur === 'home') {
-      return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
-    }
-    if (!sub) return { success: true, newCur: 'home' }
-    if (['about', 'projects', 'resume', 'contact'].includes(sub)) {
-      return { success: true, newCur: sub }
-    }
-    return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
-  }
-
-  // Current-relative: ./projects, ./resume
-  if (raw.startsWith('./')) {
-    const sub = raw.replace(/^\.\//, '').replace(/\/+$/, '')
-    if (currentCur === 'home' && ['about', 'projects', 'resume', 'contact'].includes(sub)) {
-      return { success: true, newCur: sub }
-    }
-    return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
-  }
-
-  // Direct bare name: about, projects, resume, contact
-  const cleanBare = raw.replace(/\/+$/, '')
-  if (['about', 'projects', 'resume', 'contact'].includes(cleanBare)) {
-    if (currentCur === 'home') {
-      return { success: true, newCur: cleanBare }
-    }
-    if (cleanBare === currentCur) {
-      return { success: false, error: `bash: cd: ${targetArg}: No such file or directory (allaqachon ~/${cleanBare} papkasidasiz)` }
-    }
-    return { success: false, error: `bash: cd: ${targetArg}: No such file or directory (avval cd .. yoki cd ../${cleanBare} qiling)` }
-  }
-
-  return { success: false, error: `bash: cd: ${targetArg}: No such file or directory` }
-}
-
-export default function App() {
-  const [cur, setCur] = useState('home')
-  const [clock, setClock] = useState('')
+/* ================== TERMINAL WINDOW COMPONENT ================== */
+function TerminalWindow({
+  win,
+  isActive,
+  isMobile,
+  onActivate,
+  onClose,
+  onMinimize,
+  onToggleMaximize,
+  onSpawnWindow,
+  onUpdateCur,
+  registerGoTo,
+  onStartDrag,
+  onStartResize,
+}) {
+  const [cur, setCur] = useState(win.cur || 'home')
   const [initialCleared, setInitialCleared] = useState(false)
-
-  // Terminal buyruqlar va xabarlar ro'yxati
   const [history, setHistory] = useState([])
   const [cmdHistory, setCmdHistory] = useState([])
   const [historyIndex, setHistoryIndex] = useState(-1)
@@ -335,6 +347,14 @@ export default function App() {
   const [selection, setSelection] = useState({ start: 0, end: 0 })
   const [isTyping, setIsTyping] = useState(false)
   const typingTimeoutRef = useRef(null)
+
+  const inputRef = useRef(null)
+  const termRef = useRef(null)
+  const bottomAnchorRef = useRef(null)
+
+  useEffect(() => {
+    onUpdateCur(cur)
+  }, [cur])
 
   const touchTyping = () => {
     setIsTyping(true)
@@ -364,10 +384,6 @@ export default function App() {
     })
   }
 
-  const inputRef = useRef(null)
-  const termRef = useRef(null)
-  const bottomAnchorRef = useRef(null)
-
   const scrollToBottom = (smooth = false) => {
     const behavior = smooth ? 'smooth' : 'auto'
     if (termRef.current) {
@@ -395,32 +411,12 @@ export default function App() {
   }
 
   useEffect(() => {
-    focusInput()
-    const t1 = setTimeout(focusInput, 50)
-    const t2 = setTimeout(focusInput, 200)
-
-    const handleGlobalClick = (e) => {
-      if (!e.target.closest('a, button')) {
-        focusInput()
-      }
+    if (isActive) {
+      focusInput()
+      const t = setTimeout(focusInput, 50)
+      return () => clearTimeout(t)
     }
-    window.addEventListener('click', handleGlobalClick)
-    return () => {
-      clearTimeout(t1)
-      clearTimeout(t2)
-      window.removeEventListener('click', handleGlobalClick)
-    }
-  }, [wizard, loading, cur])
-
-  useEffect(() => {
-    if (window.location.pathname !== '/') {
-      window.history.replaceState(null, '', '/')
-    }
-    const tick = () => setClock(new Date().toLocaleString('uz', { weekday: 'short', hour: '2-digit', minute: '2-digit' }))
-    tick()
-    const id = setInterval(tick, 30000)
-    return () => clearInterval(id)
-  }, [])
+  }, [isActive, cur, wizard, loading])
 
   const addHistory = (nodes) => {
     setHistory((prev) => [...prev, ...nodes])
@@ -457,6 +453,11 @@ export default function App() {
     ])
     setTimeout(() => scrollToBottom(), 40)
   }
+
+  useEffect(() => {
+    registerGoTo(win.id, goTo)
+    return () => registerGoTo(win.id, null)
+  }, [goTo, win.id])
 
   const sendEmail = async (n, e, m) => {
     setLoading(true)
@@ -495,30 +496,93 @@ export default function App() {
     }
   }
 
-  const showHelp = (echoLine) => {
+  const getHelpNode = () => (
+    <div key={Date.now() + 1} className="term-msg" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
+      <span className="d">GNU bash, version 5.3.9(1)-release (x86_64-pc-linux-gnu)</span><br />
+      <span className="d">These shell commands are defined internally. Type `help&apos; to see this list.</span><br />
+      <span className="d">Type `send-mail --help&apos; to find out more about sending emails.</span><br /><br />
+      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cd [dir]</span><span className="h">pwd</span><br />
+      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cat &lt;file.md&gt;</span><span className="h">ls [-la]</span><br />
+      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>send-mail [options]</span><span className="h">clear</span><br />
+      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>new / open [dir]</span><span className="h">history</span><br />
+      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>whoami / uname / date</span><span className="h">help</span><br />
+      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cd ..</span><br /><br />
+      <span className="d">Directories:</span><br />
+      {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>about/</span><span className="u">projects/</span><br />
+      {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>resume/</span><span className="u">contact/</span><br />
+      {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>~ (home)</span><br /><br />
+      <span className="d">Files:</span><br />
+      {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>README.md</span><span>about.md</span><br />
+      {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>projects.md</span><span>meetly.md</span><br />
+      {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>authly.md</span><span>fragmently.md</span><br />
+      {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>resume.md</span><span>contact.md</span><br />
+      {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>resume.pdf</span>
+    </div>
+  )
+
+  const handleSendMailCmd = (tokens, echoLine) => {
+    if (tokens.includes('--help') || tokens.includes('-h')) {
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg" style={{ whiteSpace: 'pre-wrap' }}>
+          <span className="h">Usage:</span> send-mail [options]<br /><br />
+          <span className="d">Options:</span><br />
+          {'  '}<span className="u">-n, --name</span> &lt;string&gt;     Ism va familiyangiz<br />
+          {'  '}<span className="u">-e, --email</span> &lt;email&gt;     Javob qaytarish uchun emailingiz<br />
+          {'  '}<span className="u">-m, --message</span> &lt;string&gt;  Xabar matni<br />
+          {'  '}<span className="u">-h, --help</span>             Ushbu yordam oynasini chiqarish<br /><br />
+          <span className="d">Examples:</span><br />
+          {'  '}<span className="h">send-mail</span> <span className="d">(interaktiv rejim)</span><br />
+          {'  '}<span className="h">send-mail --name &quot;Alijonov Abdulbosit&quot; --email &quot;me@alijonov.uz&quot; --message &quot;Salom!&quot;</span>
+        </div>,
+      ])
+      return
+    }
+
+    let nameVal = ''
+    let emailVal = ''
+    let msgVal = ''
+    for (let i = 1; i < tokens.length; i++) {
+      const t = tokens[i]
+      if ((t === '--name' || t === '-n') && tokens[i + 1]) nameVal = tokens[++i]
+      else if ((t === '--email' || t === '-e') && tokens[i + 1]) emailVal = tokens[++i]
+      else if ((t === '--message' || t === '-m') && tokens[i + 1]) msgVal = tokens[++i]
+    }
+
+    if (nameVal && emailVal && msgVal) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            <span className="k">[-] Xatolik:</span> Email formati noto‘g‘ri (&apos;{emailVal}&apos;)
+          </div>,
+        ])
+        return
+      }
+      addHistory([echoLine])
+      sendEmail(nameVal, emailVal, msgVal)
+      return
+    }
+
     addHistory([
       echoLine,
-      <div key={Date.now() + 1} className="term-msg" style={{ whiteSpace: 'pre-wrap', lineHeight: 1.65 }}>
-        <span className="d">GNU bash, version 5.3.9(1)-release (x86_64-pc-linux-gnu)</span><br />
-        <span className="d">These shell commands are defined internally. Type `help&apos; to see this list.</span><br />
-        <span className="d">Type `send-mail --help&apos; to find out more about sending emails.</span><br /><br />
-        {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cd [dir]</span><span className="h">pwd</span><br />
-        {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cat &lt;file.md&gt;</span><span className="h">ls [-la]</span><br />
-        {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>send-mail [options]</span><span className="h">clear</span><br />
-        {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>whoami / uname / date</span><span className="h">history</span><br />
-        {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cd ..</span><span className="h">help</span><br /><br />
-        <span className="d">Directories:</span><br />
-        {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>about/</span><span className="u">projects/</span><br />
-        {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>resume/</span><span className="u">contact/</span><br />
-        {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>~ (home)</span><br /><br />
-        <span className="d">Files:</span><br />
-        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>README.md</span><span>about.md</span><br />
-        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>projects.md</span><span>meetly.md</span><br />
-        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>authly.md</span><span>fragmently.md</span><br />
-        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>resume.md</span><span>contact.md</span><br />
-        {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>resume.pdf</span>
+      <div key={Date.now() + 1} className="term-msg d">
+        --- Interaktiv xabar yuborish (bekor qilish: &apos;exit&apos;) ---
       </div>,
     ])
+
+    if (!nameVal) {
+      setWizard({ step: 'name', name: '', email: '', message: '' })
+    } else if (!emailVal) {
+      addHistory([<div key={Date.now() + 2} className="term-msg"><span className="u">&gt;</span> Ism: {nameVal}</div>])
+      setWizard({ step: 'email', name: nameVal, email: '', message: '' })
+    } else {
+      addHistory([
+        <div key={Date.now() + 2} className="term-msg"><span className="u">&gt;</span> Ism: {nameVal}</div>,
+        <div key={Date.now() + 3} className="term-msg"><span className="u">&gt;</span> Email: {emailVal}</div>,
+      ])
+      setWizard({ step: 'message', name: nameVal, email: emailVal, message: '' })
+    }
   }
 
   const handleChainedCommand = (fullCmd, echoLine) => {
@@ -782,8 +846,32 @@ export default function App() {
       return
     }
 
+    // new / new-term / open
+    if (trimmed === 'new' || trimmed === 'new-term' || trimmed === 'new-window') {
+      onSpawnWindow('home')
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          <span className="u">[+]</span> Yangi terminal oynasi ochildi.
+        </div>,
+      ])
+      return
+    }
+
+    if (trimmed.startsWith('open ') || trimmed === 'open') {
+      const targetDir = trimmed.startsWith('open ') ? trimmed.slice(5).trim() : 'home'
+      onSpawnWindow(targetDir || 'home')
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          <span className="u">[+]</span> Yangi oynada ochilmoqda: {targetDir}
+        </div>,
+      ])
+      return
+    }
+
     // ls / dir
-    if (trimmed === 'ls' || trimmed === 'dir' || trimmed.startsWith('ls ')) {
+    if (trimmed === 'ls' || trimmed === 'dir' || trimmed.startsWith('ls ') || trimmed.startsWith('dir ')) {
       let lsContent = null
       if (cur === 'home') {
         lsContent = (
@@ -835,7 +923,7 @@ export default function App() {
       return
     }
 
-    // cd [dir] (about, about/, projects, projects/, resume, contact, ~, .., va h.k.)
+    // cd [dir]
     if (trimmed.startsWith('cd ') || trimmed === 'cd') {
       const rawTarget = trimmed.startsWith('cd ') ? trimmed.slice(3).trim() : ''
       const res = resolveCd(rawTarget, cur)
@@ -893,7 +981,7 @@ export default function App() {
       return
     }
 
-    // meetly.md / cat meetly.md
+    // meetly.md
     if (trimmed === 'cat meetly.md' || trimmed === 'meetly.md' || trimmed === './meetly.md' || trimmed === 'cat projects/meetly.md' || trimmed === 'cat meetly.m') {
       if (cur === 'projects' || cur === 'home' || trimmed === 'cat projects/meetly.md') {
         addHistory([
@@ -913,7 +1001,7 @@ export default function App() {
       return
     }
 
-    // authly.md / cat authly.md
+    // authly.md
     if (trimmed === 'cat authly.md' || trimmed === 'authly.md' || trimmed === './authly.md' || trimmed === 'cat projects/authly.md' || trimmed === 'cat authly.m') {
       if (cur === 'projects' || cur === 'home' || trimmed === 'cat projects/authly.md') {
         addHistory([
@@ -933,7 +1021,7 @@ export default function App() {
       return
     }
 
-    // fragmently.md / cat fragmently.md
+    // fragmently.md
     if (trimmed === 'cat fragmently.md' || trimmed === 'fragmently.md' || trimmed === './fragmently.md' || trimmed === 'cat projects/fragmently.md' || trimmed === 'cat fragmently.m') {
       if (cur === 'projects' || cur === 'home' || trimmed === 'cat projects/fragmently.md') {
         addHistory([
@@ -953,7 +1041,7 @@ export default function App() {
       return
     }
 
-    // resume.md / cat resume.md
+    // resume.md
     if (trimmed === 'cat resume.md' || trimmed === 'resume.md' || trimmed === './resume.md' || trimmed === 'cat resume/resume.md' || trimmed === 'cat resume.m' || trimmed === 'cat resumem') {
       if (cur === 'resume' || cur === 'home' || trimmed === 'cat resume/resume.md') {
         addHistory([
@@ -973,7 +1061,7 @@ export default function App() {
       return
     }
 
-    // resume.pdf / cat resume.pdf
+    // resume.pdf
     if (trimmed === 'cat resume.pdf' || trimmed === 'resume.pdf' || trimmed === './resume.pdf' || trimmed === 'cat resume/resume.pdf' || trimmed === 'cat resume.p' || trimmed === 'cat resumep') {
       window.open(RESUME_PDF, '_blank')
       addHistory([
@@ -985,7 +1073,7 @@ export default function App() {
       return
     }
 
-    // contact.md / cat contact.md
+    // contact.md
     if (trimmed === 'cat contact.md' || trimmed === 'contact.md' || trimmed === './contact.md' || trimmed === 'cat contact/contact.md' || trimmed === 'cat contact.m') {
       if (cur === 'contact' || cur === 'home' || trimmed === 'cat contact/contact.md') {
         addHistory([
@@ -1005,7 +1093,7 @@ export default function App() {
       return
     }
 
-    // README.md / cat README.md
+    // README.md
     if (trimmed === 'cat README.md' || trimmed === 'README.md' || trimmed === './README.md' || trimmed === 'cat readme.md' || trimmed === 'readme.md') {
       if (cur === 'home') {
         addHistory([
@@ -1025,7 +1113,7 @@ export default function App() {
       return
     }
 
-    // Tezkor sahifa chaqirish (about / projects / resume / contact) — faqat cd, output emas
+    // Quick shortcuts
     if (['about', 'projects', 'resume', 'contact', './about', './projects', './resume', './contact', '../about', '../projects', '../resume', '../contact', 'about/', 'projects/', 'resume/', 'contact/'].includes(trimmed)) {
       const res = resolveCd(trimmed, cur)
       if (res.success) {
@@ -1042,7 +1130,7 @@ export default function App() {
       return
     }
 
-    // cat xato fayl
+    // cat invalid file
     if (trimmed.startsWith('cat ')) {
       const f = trimmed.slice(4).trim()
       addHistory([
@@ -1055,7 +1143,7 @@ export default function App() {
     }
 
     if (trimmed === 'help') {
-      showHelp(echoLine)
+      addHistory([echoLine, getHelpNode()])
       return
     }
 
@@ -1115,11 +1203,11 @@ export default function App() {
 
     // exit / logout
     if (trimmed === 'exit' || trimmed === 'logout') {
-      addHistory([echoLine, <div key={Date.now() + 1} className="term-msg d">logout — sessiya yopilmaydi (bu brauzer :)</div>])
+      onClose()
       return
     }
 
-    // rm / rmdir / mkdir / touch / sudo / vim / reboot hazil javoblari
+    // Joke commands
     if (trimmed.startsWith('rm -rf') || trimmed.startsWith('rm -r')) {
       const rawTarget = trimmed.replace(/^rm\s+(-rf|-r)\s*/, '').trim()
       let target = rawTarget || '/'
@@ -1214,11 +1302,11 @@ export default function App() {
 
       const targetMsg = target
         ? <><span className="k">vim:</span> &apos;{target}&apos; tahrirlash cheklangan (read-only portfolio). Chiqish uchun &apos;:q!&apos; shart emas :)</>
-        : <>tahrirlash cheklangan (read-only portfolio). Chiqish uchun &apos;:q!&apos; shart emas :)</>
+        : <><span className="k">vim:</span> read-only tizim, fayl tahrirlab bo‘lmaydi. Chiqish uchun &apos;:q!&apos; shart emas :)</>
 
       addHistory([
         echoLine,
-        <div key={Date.now() + 1} className="term-msg d">
+        <div key={Date.now() + 1} className="term-msg">
           {targetMsg}
         </div>,
       ])
@@ -1249,72 +1337,11 @@ export default function App() {
     const cmd = tokens[0]
 
     if (cmd === 'send-mail' || cmd === 'sendmail') {
-      if (tokens.includes('--help') || tokens.includes('-h')) {
-        addHistory([
-          echoLine,
-          <div key={Date.now() + 1} className="term-msg" style={{ whiteSpace: 'pre-wrap' }}>
-            <span className="h">Usage:</span> send-mail [options]<br /><br />
-            <span className="d">Options:</span><br />
-            {'  '}<span className="u">-n, --name</span> &lt;string&gt;     Ism va familiyangiz<br />
-            {'  '}<span className="u">-e, --email</span> &lt;email&gt;     Javob qaytarish uchun emailingiz<br />
-            {'  '}<span className="u">-m, --message</span> &lt;string&gt;  Xabar matni<br />
-            {'  '}<span className="u">-h, --help</span>             Ushbu yordam oynasini chiqarish<br /><br />
-            <span className="d">Examples:</span><br />
-            {'  '}<span className="h">send-mail</span> <span className="d">(interaktiv rejim)</span><br />
-            {'  '}<span className="h">send-mail --name &quot;Alijonov Abdulbosit&quot; --email &quot;me@alijonov.uz&quot; --message &quot;Salom!&quot;</span>
-          </div>,
-        ])
-        return
-      }
-
-      let nameVal = ''
-      let emailVal = ''
-      let msgVal = ''
-      for (let i = 1; i < tokens.length; i++) {
-        const t = tokens[i]
-        if ((t === '--name' || t === '-n') && tokens[i + 1]) nameVal = tokens[++i]
-        else if ((t === '--email' || t === '-e') && tokens[i + 1]) emailVal = tokens[++i]
-        else if ((t === '--message' || t === '-m') && tokens[i + 1]) msgVal = tokens[++i]
-      }
-
-      if (nameVal && emailVal && msgVal) {
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-          addHistory([
-            echoLine,
-            <div key={Date.now() + 1} className="term-msg">
-              <span className="k">[-] Xatolik:</span> Email formati noto‘g‘ri (&apos;{emailVal}&apos;)
-            </div>,
-          ])
-          return
-        }
-        addHistory([echoLine])
-        sendEmail(nameVal, emailVal, msgVal)
-        return
-      }
-
-      addHistory([
-        echoLine,
-        <div key={Date.now() + 1} className="term-msg d">
-          --- Interaktiv xabar yuborish (bekor qilish: &apos;exit&apos;) ---
-        </div>,
-      ])
-
-      if (!nameVal) {
-        setWizard({ step: 'name', name: '', email: '', message: '' })
-      } else if (!emailVal) {
-        addHistory([<div key={Date.now() + 2} className="term-msg"><span className="u">&gt;</span> Ism: {nameVal}</div>])
-        setWizard({ step: 'email', name: nameVal, email: '', message: '' })
-      } else {
-        addHistory([
-          <div key={Date.now() + 2} className="term-msg"><span className="u">&gt;</span> Ism: {nameVal}</div>,
-          <div key={Date.now() + 3} className="term-msg"><span className="u">&gt;</span> Email: {emailVal}</div>,
-        ])
-        setWizard({ step: 'message', name: nameVal, email: emailVal, message: '' })
-      }
+      handleSendMailCmd(tokens, echoLine)
       return
     }
 
-    // Noma'lum buyruq: haqiqiy Linux bash xatoligi
+    // Noma'lum buyruq
     addHistory([
       echoLine,
       <div key={Date.now() + 1} className="term-msg">
@@ -1338,12 +1365,16 @@ export default function App() {
       addHistory([
         <div key={Date.now()} className="term-msg"><span className="u">&gt;</span> Ism: {trimmed}</div>,
       ])
-      setWizard({ ...wizard, name: trimmed, step: 'email' })
-    } else if (wizard.step === 'email') {
+      setWizard({ step: 'email', name: trimmed, email: '', message: '' })
+      return
+    }
+
+    if (wizard.step === 'email') {
+      if (!trimmed) return
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
         addHistory([
           <div key={Date.now()} className="term-msg">
-            <span className="k">[!]</span> To‘g‘ri email kiriting (masalan: user@example.com):
+            <span className="k">[-] Xatolik:</span> To‘g‘ri email manzil kiriting (masalan: siz@gmail.com):
           </div>,
         ])
         return
@@ -1351,22 +1382,32 @@ export default function App() {
       addHistory([
         <div key={Date.now()} className="term-msg"><span className="u">&gt;</span> Email: {trimmed}</div>,
       ])
-      setWizard({ ...wizard, email: trimmed, step: 'message' })
-    } else if (wizard.step === 'message') {
+      setWizard((prev) => ({ ...prev, step: 'message', email: trimmed }))
+      return
+    }
+
+    if (wizard.step === 'message') {
       if (!trimmed) return
       addHistory([
         <div key={Date.now()} className="term-msg"><span className="u">&gt;</span> Xabar: {trimmed}</div>,
+        <div key={Date.now() + 1} className="term-msg d">--- Xabar tayyor ---</div>,
+        <div key={Date.now() + 2} className="term-msg">Ism: {wizard.name}</div>,
+        <div key={Date.now() + 3} className="term-msg">Email: {wizard.email}</div>,
+        <div key={Date.now() + 4} className="term-msg">Matn: {trimmed}</div>,
       ])
-      setWizard({ ...wizard, message: trimmed, step: 'confirm' })
-    } else if (wizard.step === 'confirm') {
-      const lower = trimmed.toLowerCase()
-      if (lower === 'n' || lower === 'no' || lower === 'yoq') {
+      setWizard((prev) => ({ ...prev, step: 'confirm', message: trimmed }))
+      return
+    }
+
+    if (wizard.step === 'confirm') {
+      const ans = trimmed.toLowerCase()
+      if (ans === 'y' || ans === 'yes' || ans === 'ha' || ans === '') {
+        sendEmail(wizard.name, wizard.email, wizard.message)
+      } else {
         addHistory([
           <div key={Date.now()} className="term-msg d">[!] Yuborish bekor qilindi.</div>,
         ])
         setWizard(null)
-      } else {
-        sendEmail(wizard.name, wizard.email, wizard.message)
       }
     }
   }
@@ -1456,7 +1497,7 @@ export default function App() {
 
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      if (historyIndex === -1) return
+      if (cmdHistory.length === 0 || historyIndex === -1) return
       const nextIdx = historyIndex + 1
       if (nextIdx >= cmdHistory.length) {
         setHistoryIndex(-1)
@@ -1511,7 +1552,6 @@ export default function App() {
         files = ['contact.md']
       }
 
-      // tryComplete yordamchi funksiyasi: LCP va Linux Bash completion
       const tryComplete = (cmdPrefix, rawPrefix, pool) => {
         const cleanPrefix = rawPrefix.trimStart()
         if (!cleanPrefix) {
@@ -1523,7 +1563,6 @@ export default function App() {
           return false
         }
 
-        // 1. Mos keluvchilarni topish (avval case-sensitive, keyin case-insensitive)
         const stripTrailing = (s) => s.replace(/\/+$/, '')
         let matches = pool.filter((item) =>
           item.startsWith(cleanPrefix) ||
@@ -1541,27 +1580,23 @@ export default function App() {
         }
         if (matches.length === 0) return false
 
-        // 2. Yagona moslik bo'lsa
         if (matches.length === 1) {
           setInputValueAndCaret(`${cmdPrefix}${matches[0]}`)
           return true
         }
 
-        // 3. Bir nechta moslik bo'lsa: Longest Common Prefix (LCP)
         const lcp = getLongestCommonPrefix(matches)
         if (lcp && lcp.length > cleanPrefix.length) {
           setInputValueAndCaret(`${cmdPrefix}${lcp}`)
           return true
         }
 
-        // 4. Allaqachon LCP darajasida bo'lsa, Tab bosilganda navbatdagi variantga o'tish (cycle)
         const currIdx = matches.indexOf(cleanPrefix)
         const nextIdx = (currIdx + 1) % matches.length
         setInputValueAndCaret(`${cmdPrefix}${matches[nextIdx]}`)
         return true
       }
 
-      // Prefiksli buyruqlarni tekshirish
       const prefixConfigs = [
         { prefix: 'rm -rf ', pool: [...dirs, ...files] },
         { prefix: 'rm -r ', pool: [...dirs, ...files] },
@@ -1574,6 +1609,7 @@ export default function App() {
         { prefix: 'vi ', pool: files },
         { prefix: 'cat ', pool: files },
         { prefix: 'cd ', pool: cur === 'home' ? ['..', '~', ...dirs] : ['..', '../', ...dirs, '~', '~/'] },
+        { prefix: 'open ', pool: ['home', 'about', 'projects', 'resume', 'contact'] },
       ]
 
       for (const cfg of prefixConfigs) {
@@ -1584,7 +1620,6 @@ export default function App() {
         }
       }
 
-      // Maxsus holatlar (bo'sh argumentli buyruqlar)
       if (val === 'cat') { setInputValueAndCaret('cat '); return }
       if (val === 'cd') { setInputValueAndCaret('cd '); return }
       if (val === 'rm') { setInputValueAndCaret('rm '); return }
@@ -1594,11 +1629,12 @@ export default function App() {
       if (val === 'touch') { setInputValueAndCaret('touch '); return }
       if (val === 'mkdir') { setInputValueAndCaret('mkdir '); return }
       if (val === 'rmdir') { setInputValueAndCaret('rmdir '); return }
+      if (val === 'open') { setInputValueAndCaret('open '); return }
 
-      // Prefikssiz, alohida yozilayotgan buyruq yoki fayl/papka nomi
       const commands = [
         'help', 'clear', 'send-mail', 'pwd', 'ls', 'cd', 'cat',
         'whoami', 'uname', 'uptime', 'date', 'history',
+        'new', 'new-term', 'open',
         'rm -rf', 'rm', 'mkdir', 'rmdir', 'touch', 'vim', 'nano', 'sudo'
       ]
       const standalonePool = [...files, ...dirs, ...commands]
@@ -1607,6 +1643,451 @@ export default function App() {
     }
   }
 
+  const windowStyle = isMobile
+    ? { display: win.isMinimized ? 'none' : (isActive ? 'flex' : 'none'), zIndex: win.zIndex }
+    : {
+        display: win.isMinimized ? 'none' : 'flex',
+        left: win.isMaximized ? 8 : win.x,
+        top: win.isMaximized ? 8 : win.y,
+        width: win.isMaximized ? 'calc(100% - 16px)' : win.width,
+        height: win.isMaximized ? 'calc(100% - 16px)' : win.height,
+        zIndex: win.zIndex,
+      }
+
+  return (
+    <div
+      className={`win ${isActive ? 'is-active' : 'is-inactive'} ${win.isMaximized ? 'is-maximized' : ''}`}
+      style={windowStyle}
+      onPointerDown={onActivate}
+    >
+      {/* 8-yo'nalishli resize tutqichlari */}
+      {!win.isMaximized && !isMobile && (
+        <>
+          <div className="resize-handle rh-e" onPointerDown={(e) => onStartResize('e', e)} />
+          <div className="resize-handle rh-w" onPointerDown={(e) => onStartResize('w', e)} />
+          <div className="resize-handle rh-s" onPointerDown={(e) => onStartResize('s', e)} />
+          <div className="resize-handle rh-n" onPointerDown={(e) => onStartResize('n', e)} />
+          <div className="resize-handle rh-se" onPointerDown={(e) => onStartResize('se', e)} />
+          <div className="resize-handle rh-sw" onPointerDown={(e) => onStartResize('sw', e)} />
+          <div className="resize-handle rh-ne" onPointerDown={(e) => onStartResize('ne', e)} />
+          <div className="resize-handle rh-nw" onPointerDown={(e) => onStartResize('nw', e)} />
+        </>
+      )}
+
+      {/* Sarlavha: macOS tugmalari va sudrab ko'chirish */}
+      <div
+        className="bar"
+        onPointerDown={onStartDrag}
+        onDoubleClick={onToggleMaximize}
+      >
+        <div className="bar-dots" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            className="dot dot-close"
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
+            title="Yopish (Close)"
+          >
+            <svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+          </button>
+          <button
+            type="button"
+            className="dot dot-min"
+            onClick={(e) => { e.stopPropagation(); onMinimize(); }}
+            title="Kichraytirish (Minimize)"
+          >
+            <svg viewBox="0 0 12 12"><path d="M2.5 6h7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" /></svg>
+          </button>
+          <button
+            type="button"
+            className="dot dot-max"
+            onClick={(e) => { e.stopPropagation(); onToggleMaximize(); }}
+            title="Kattalashtirish (Zoom)"
+          >
+            <svg viewBox="0 0 12 12"><path d="M3 8.5L8.5 3M8.5 6.5V3H5M3.5 5.5v3.5H7" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          </button>
+        </div>
+        <span>root@alijonov: {cur === 'home' ? '~' : `~/${cur}`}</span>
+      </div>
+
+      {/* Terminal kontenti va ichki scroll */}
+      <div className="term" ref={termRef} onClick={() => focusInput()}>
+        {!initialCleared && (
+          <>
+            <div className="term-line term-echo">
+              <Prompt path={cur} />
+              <div className="term-input-wrapper">
+                <span className="term-typed-text">{cur === 'home' ? 'cat README.md' : `cat ${cur}.md`}</span>
+              </div>
+            </div>
+            <div className="o">
+              {outputs(goTo)[cur]}
+            </div>
+          </>
+        )}
+
+        {history.map((el, i) => (
+          <div key={i}>{el}</div>
+        ))}
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (loading) return
+            const v = inputVal
+            setInputValueAndCaret('')
+            if (v.trim() && !wizard) {
+              setCmdHistory((prev) => [...prev, v.trim()])
+              setHistoryIndex(-1)
+            }
+            if (wizard) handleWizardInput(v)
+            else handleCommand(v)
+          }}
+          className="term-line"
+        >
+          {getPromptLabel()}
+          <div className="term-input-wrapper" onClick={() => focusInput()}>
+            {(() => {
+              const start = Math.min(selection.start, selection.end)
+              const end = Math.max(selection.start, selection.end)
+              const isSelected = start !== end
+
+              if (isSelected) {
+                const before = inputVal.slice(0, start)
+                const selectedText = inputVal.slice(start, end)
+                const after = inputVal.slice(end)
+                return (
+                  <span className="term-typed-text">
+                    <span>{before}</span>
+                    <span className="term-selection">{selectedText}</span>
+                    <span>{after}</span>
+                  </span>
+                )
+              }
+
+              const pos = Math.min(Math.max(0, start), inputVal.length)
+              const before = inputVal.slice(0, pos)
+              const char = pos < inputVal.length
+                ? (inputVal[pos] === ' ' ? '\u00A0' : inputVal[pos])
+                : '\u00A0'
+              const after = pos < inputVal.length ? inputVal.slice(pos + 1) : ''
+
+              return (
+                <span className="term-typed-text">
+                  <span>{before}</span>
+                  <span className={`term-cursor-block ${isTyping ? 'solid' : ''}`}>{char}</span>
+                  <span>{after}</span>
+                </span>
+              )
+            })()}
+            <input
+              ref={inputRef}
+              type="text"
+              className="term-real-input"
+              value={inputVal}
+              onChange={(e) => {
+                touchTyping()
+                setInputVal(e.target.value)
+                syncSelection(e.target)
+              }}
+              onKeyDown={(e) => {
+                handleKeyDown(e)
+                if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'Backspace', 'Delete'].includes(e.key)) {
+                  requestAnimationFrame(() => syncSelection())
+                }
+              }}
+              onKeyUp={() => syncSelection()}
+              onSelect={(e) => syncSelection(e.target)}
+              onClick={(e) => syncSelection(e.target)}
+              disabled={loading}
+              autoComplete="off"
+              spellCheck="false"
+              autoFocus={isActive}
+            />
+          </div>
+        </form>
+        <div ref={bottomAnchorRef} style={{ height: 24 }} />
+      </div>
+    </div>
+  )
+}
+
+/* ================== MAIN APP (DESKTOP WINDOW MANAGER) ================== */
+export default function App() {
+  const [clock, setClock] = useState('')
+  const [windows, setWindows] = useState([])
+  const [activeId, setActiveId] = useState(null)
+  const [maxZIndex, setMaxZIndex] = useState(10)
+  const [isMobile, setIsMobile] = useState(false)
+  const goToRegistryRef = useRef({})
+
+  const registerGoTo = (winId, fn) => {
+    if (fn) {
+      goToRegistryRef.current[winId] = fn
+    } else {
+      delete goToRegistryRef.current[winId]
+    }
+  }
+
+  // Ekran o'lchami o'zgarganda aniqlash
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 640)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Boshlang'ich bitta oyna yaratish
+  useEffect(() => {
+    const isSmall = window.innerWidth <= 640
+    const w = isSmall ? window.innerWidth : Math.min(940, window.innerWidth - 32)
+    const h = isSmall ? window.innerHeight : Math.min(620, window.innerHeight - 150)
+    const initX = Math.max(16, (window.innerWidth - w) / 2)
+    const initY = Math.max(16, (window.innerHeight - 100 - h) / 2)
+
+    const firstId = 'term-1'
+    setWindows([
+      {
+        id: firstId,
+        cur: 'home',
+        x: initX,
+        y: initY,
+        width: w,
+        height: h,
+        zIndex: 10,
+        isMaximized: false,
+        isMinimized: false,
+      },
+    ])
+    setActiveId(firstId)
+  }, [])
+
+  // Soat
+  useEffect(() => {
+    if (window.location.pathname !== '/') {
+      window.history.replaceState(null, '', '/')
+    }
+    const tick = () => setClock(new Date().toLocaleString('uz', { weekday: 'short', hour: '2-digit', minute: '2-digit' }))
+    tick()
+    const id = setInterval(tick, 30000)
+    return () => clearInterval(id)
+  }, [])
+
+  const activateWindow = (winId) => {
+    setActiveId(winId)
+    setMaxZIndex((prev) => {
+      const nextZ = prev + 1
+      setWindows((wList) =>
+        wList.map((w) => (w.id === winId ? { ...w, zIndex: nextZ } : w))
+      )
+      return nextZ
+    })
+  }
+
+  const createNewWindow = (targetCur = 'home') => {
+    const id = 'term-' + Date.now() + '-' + Math.floor(Math.random() * 1000)
+    const count = windows.length
+    const offset = (count % 7) * 26
+
+    const isSmall = window.innerWidth <= 640
+    const w = isSmall ? window.innerWidth : Math.min(920, window.innerWidth - 48)
+    const h = isSmall ? window.innerHeight : Math.min(600, window.innerHeight - 160)
+
+    const baseCenterX = Math.max(16, (window.innerWidth - w) / 2)
+    const baseCenterY = Math.max(16, (window.innerHeight - 100 - h) / 2)
+
+    const nextZ = maxZIndex + 1
+    setMaxZIndex(nextZ)
+
+    const newWin = {
+      id,
+      cur: targetCur,
+      x: isSmall ? 0 : Math.max(16, baseCenterX + offset),
+      y: isSmall ? 0 : Math.max(16, baseCenterY + offset),
+      width: w,
+      height: h,
+      zIndex: nextZ,
+      isMaximized: false,
+      isMinimized: false,
+    }
+
+    setWindows((prev) => [...prev, newWin])
+    setActiveId(id)
+  }
+
+  const closeWindow = (winId) => {
+    setWindows((prev) => {
+      const filtered = prev.filter((w) => w.id !== winId)
+      if (activeId === winId) {
+        const nextActive = filtered[filtered.length - 1]?.id || null
+        setActiveId(nextActive)
+      }
+      return filtered
+    })
+  }
+
+  const minimizeWindow = (winId) => {
+    setWindows((prev) => {
+      const updated = prev.map((w) => (w.id === winId ? { ...w, isMinimized: true } : w))
+      if (activeId === winId) {
+        const remainingUnmin = updated.filter((w) => !w.isMinimized)
+        setActiveId(remainingUnmin[remainingUnmin.length - 1]?.id || null)
+      }
+      return updated
+    })
+  }
+
+  const toggleMaximize = (winId) => {
+    setWindows((prev) =>
+      prev.map((w) => {
+        if (w.id !== winId) return w
+        if (w.isMaximized) {
+          return {
+            ...w,
+            isMaximized: false,
+            ...(w.prevBounds || {}),
+          }
+        } else {
+          return {
+            ...w,
+            isMaximized: true,
+            prevBounds: { x: w.x, y: w.y, width: w.width, height: w.height },
+          }
+        }
+      })
+    )
+  }
+
+  const restoreOrActivate = (winId) => {
+    setWindows((prev) =>
+      prev.map((w) => (w.id === winId ? { ...w, isMinimized: false } : w))
+    )
+    activateWindow(winId)
+  }
+
+  const handleUpdateCur = (winId, newCur) => {
+    setWindows((prev) =>
+      prev.map((w) => (w.id === winId ? { ...w, cur: newCur } : w))
+    )
+  }
+
+  // Sarlavhadan ushlab sudrab ko'chirish (Drag)
+  const handleStartDrag = (winId, e) => {
+    if (isMobile) return
+    if (e.target.closest('.bar-dots, button')) return
+    e.preventDefault()
+    activateWindow(winId)
+
+    const win = windows.find((w) => w.id === winId)
+    if (!win || win.isMaximized) return
+
+    const startX = e.clientX
+    const startY = e.clientY
+    const origX = win.x
+    const origY = win.y
+
+    const onPointerMove = (moveEvent) => {
+      const dx = moveEvent.clientX - startX
+      const dy = moveEvent.clientY - startY
+      setWindows((prev) =>
+        prev.map((w) => {
+          if (w.id !== winId) return w
+          const boundedX = Math.max(-w.width + 120, Math.min(window.innerWidth - 120, origX + dx))
+          const boundedY = Math.max(0, Math.min(window.innerHeight - 80, origY + dy))
+          return { ...w, x: boundedX, y: boundedY }
+        })
+      )
+    }
+
+    const onPointerUp = () => {
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('pointerup', onPointerUp)
+    }
+
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerup', onPointerUp)
+  }
+
+  // 8 ta chet va burchaklardan o'lchamni o'zgartirish (Resize)
+  const handleStartResize = (winId, dir, e) => {
+    if (isMobile) return
+    e.preventDefault()
+    e.stopPropagation()
+    activateWindow(winId)
+
+    const win = windows.find((w) => w.id === winId)
+    if (!win || win.isMaximized) return
+
+    const startX = e.clientX
+    const startY = e.clientY
+    const origX = win.x
+    const origY = win.y
+    const origW = win.width
+    const origH = win.height
+
+    const minW = 380
+    const minH = 260
+
+    const onPointerMove = (moveEvent) => {
+      const dx = moveEvent.clientX - startX
+      const dy = moveEvent.clientY - startY
+
+      let newW = origW
+      let newH = origH
+      let newX = origX
+      let newY = origY
+
+      if (dir.includes('e')) {
+        newW = Math.max(minW, origW + dx)
+      }
+      if (dir.includes('s')) {
+        newH = Math.max(minH, origH + dy)
+      }
+      if (dir.includes('w')) {
+        const proposedW = origW - dx
+        if (proposedW >= minW) {
+          newW = proposedW
+          newX = origX + dx
+        }
+      }
+      if (dir.includes('n')) {
+        const proposedH = origH - dy
+        if (proposedH >= minH) {
+          newH = proposedH
+          newY = origY + dy
+        }
+      }
+
+      setWindows((prev) =>
+        prev.map((w) => {
+          if (w.id !== winId) return w
+          return { ...w, x: newX, y: newY, width: newW, height: newH }
+        })
+      )
+    }
+
+    const onPointerUp = () => {
+      window.removeEventListener('pointermove', onPointerMove)
+      window.removeEventListener('pointerup', onPointerUp)
+    }
+
+    window.addEventListener('pointermove', onPointerMove)
+    window.addEventListener('pointerup', onPointerUp)
+  }
+
+  // Yuqori navbar tugmasi bosilganda faol oynani boshqarish
+  const handleNavClick = (section) => {
+    if (activeId && goToRegistryRef.current[activeId]) {
+      goToRegistryRef.current[activeId](section)
+    } else {
+      createNewWindow(section)
+    }
+  }
+
+  const activeWindow = windows.find((w) => w.id === activeId)
+  const activeCur = activeWindow ? activeWindow.cur : 'home'
+
   return (
     <>
       <div className="blob b1" /><div className="blob b2" />
@@ -1614,117 +2095,71 @@ export default function App() {
         <span className="l"><span style={{ color: 'var(--acc2)', marginRight: 6 }}>&gt;_</span>alijonov.uz</span>
         <nav>
           {[['home', '~'], ['about', 'about'], ['projects', 'projects'], ['resume', 'resume'], ['contact', 'contact']].map(([k, l]) => (
-            <button key={k} className={cur === k ? 'on' : ''} onClick={() => goTo(k)}>{l}</button>
+            <button key={k} className={activeCur === k && windows.length > 0 ? 'on' : ''} onClick={() => handleNavClick(k)}>{l}</button>
           ))}
+          <button
+            onClick={() => createNewWindow('home')}
+            style={{ color: 'var(--acc)', fontWeight: 700 }}
+            title="Yangi terminal oynasi ochish"
+          >
+            + oyna
+          </button>
         </nav>
         <span id="clk">{clock}</span>
       </div>
+
       <main>
-        <div className="win">
-          <div className="bar">
-            <i style={{ background: '#ff5f57' }} /><i style={{ background: '#febc2e' }} /><i style={{ background: '#28c840' }} />
-            <span>root@alijonov: {cur === 'home' ? '~' : `~/${cur}`}</span>
+        {windows.length === 0 && (
+          <div className="empty-desktop">
+            <div className="empty-tux"><pre>{TUX}</pre></div>
+            <div style={{ marginTop: 12, color: 'var(--dim)', fontSize: 13 }}>Barcha terminal oynalari yopilgan</div>
+            <button className="btn-new-term" onClick={() => createNewWindow('home')}>
+              + Yangi terminal ochish
+            </button>
           </div>
-          <div className="term" ref={termRef} onClick={() => inputRef.current?.focus()}>
-            {!initialCleared && (
-              <>
-                <div className="term-line term-echo">
-                  <Prompt path="home" />
-                  <div className="term-input-wrapper">
-                    <span className="term-typed-text">cat README.md</span>
-                  </div>
-                </div>
-                <div className="o">
-                  {outputs(goTo)['home']}
-                </div>
-              </>
-            )}
+        )}
 
-            {history.map((el, i) => (
-              <div key={i}>{el}</div>
+        {windows.map((w) => (
+          <TerminalWindow
+            key={w.id}
+            win={w}
+            isActive={w.id === activeId}
+            isMobile={isMobile}
+            onActivate={() => activateWindow(w.id)}
+            onClose={() => closeWindow(w.id)}
+            onMinimize={() => minimizeWindow(w.id)}
+            onToggleMaximize={() => toggleMaximize(w.id)}
+            onSpawnWindow={(t) => createNewWindow(t)}
+            onUpdateCur={(newCur) => handleUpdateCur(w.id, newCur)}
+            registerGoTo={registerGoTo}
+            onStartDrag={(e) => handleStartDrag(w.id, e)}
+            onStartResize={(dir, e) => handleStartResize(w.id, dir, e)}
+          />
+        ))}
+      </main>
+
+      <div className="st">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+          <span>-- NORMAL --</span>
+          <div className="win-tabs">
+            {windows.map((w, idx) => (
+              <button
+                key={w.id}
+                className={`win-tab ${w.id === activeId ? 'on' : ''} ${w.isMinimized ? 'min' : ''}`}
+                onClick={() => restoreOrActivate(w.id)}
+                title={`Oyna ${idx + 1}`}
+              >
+                {idx + 1}: {w.cur === 'home' ? '~' : `~/${w.cur}`}
+                {w.isMinimized ? ' (min)' : ''}
+              </button>
             ))}
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                if (loading) return
-                const v = inputVal
-                setInputValueAndCaret('')
-                if (v.trim() && !wizard) {
-                  setCmdHistory((prev) => [...prev, v.trim()])
-                  setHistoryIndex(-1)
-                }
-                if (wizard) handleWizardInput(v)
-                else handleCommand(v)
-              }}
-              className="term-line"
-            >
-              {getPromptLabel()}
-              <div className="term-input-wrapper" onClick={() => focusInput()}>
-                {(() => {
-                  const start = Math.min(selection.start, selection.end)
-                  const end = Math.max(selection.start, selection.end)
-                  const isSelected = start !== end
-
-                  if (isSelected) {
-                    const before = inputVal.slice(0, start)
-                    const selectedText = inputVal.slice(start, end)
-                    const after = inputVal.slice(end)
-                    return (
-                      <span className="term-typed-text">
-                        <span>{before}</span>
-                        <span className="term-selection">{selectedText}</span>
-                        <span>{after}</span>
-                      </span>
-                    )
-                  }
-
-                  const pos = Math.min(Math.max(0, start), inputVal.length)
-                  const before = inputVal.slice(0, pos)
-                  const char = pos < inputVal.length
-                    ? (inputVal[pos] === ' ' ? '\u00A0' : inputVal[pos])
-                    : '\u00A0'
-                  const after = pos < inputVal.length ? inputVal.slice(pos + 1) : ''
-
-                  return (
-                    <span className="term-typed-text">
-                      <span>{before}</span>
-                      <span className={`term-cursor-block ${isTyping ? 'solid' : ''}`}>{char}</span>
-                      <span>{after}</span>
-                    </span>
-                  )
-                })()}
-                <input
-                  ref={inputRef}
-                  type="text"
-                  className="term-real-input"
-                  value={inputVal}
-                  onChange={(e) => {
-                    touchTyping()
-                    setInputVal(e.target.value)
-                    syncSelection(e.target)
-                  }}
-                  onKeyDown={(e) => {
-                    handleKeyDown(e)
-                    if (['ArrowLeft', 'ArrowRight', 'Home', 'End', 'Backspace', 'Delete'].includes(e.key)) {
-                      requestAnimationFrame(() => syncSelection())
-                    }
-                  }}
-                  onKeyUp={() => syncSelection()}
-                  onSelect={(e) => syncSelection(e.target)}
-                  onClick={(e) => syncSelection(e.target)}
-                  disabled={loading}
-                  autoComplete="off"
-                  spellCheck="false"
-                  autoFocus
-                />
-              </div>
-            </form>
-            <div ref={bottomAnchorRef} style={{ height: 24 }} />
+            <button className="win-tab-add" onClick={() => createNewWindow('home')} title="Yangi terminal oynasi ochish">
+              + oyna
+            </button>
           </div>
         </div>
-      </main>
-      <div className="st"><span>-- NORMAL -- main</span><span>© {new Date().getFullYear()} alijonov.uz</span></div>
+        <span>© {new Date().getFullYear()} alijonov.uz</span>
+      </div>
     </>
   )
 }
