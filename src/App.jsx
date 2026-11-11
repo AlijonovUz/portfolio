@@ -169,32 +169,42 @@ export default function App() {
   const termRef = useRef(null)
   const bottomAnchorRef = useRef(null)
 
-  const scrollToBottom = () => {
-    if (termRef.current) {
-      termRef.current.scrollTop = termRef.current.scrollHeight
+  const scrollToBottom = (smooth = true) => {
+    const behavior = smooth ? 'smooth' : 'auto'
+    if (bottomAnchorRef.current) {
+      bottomAnchorRef.current.scrollIntoView({ behavior, block: 'end' })
     }
-    bottomAnchorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    const maxScroll = Math.max(
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight
+    )
+    window.scrollTo({ top: maxScroll, behavior })
   }
 
   useEffect(() => {
     scrollToBottom()
-    const t1 = setTimeout(scrollToBottom, 30)
-    const t2 = setTimeout(scrollToBottom, 120)
+    const t1 = setTimeout(() => scrollToBottom(), 50)
+    const t2 = setTimeout(() => scrollToBottom(), 180)
     return () => {
       clearTimeout(t1)
       clearTimeout(t2)
     }
   }, [history, cur, wizard, loading, initialCleared])
 
+  const focusInput = () => {
+    if (inputRef.current) {
+      inputRef.current.focus({ preventScroll: true })
+    }
+  }
+
   useEffect(() => {
-    const focusInput = () => inputRef.current?.focus()
     focusInput()
     const t1 = setTimeout(focusInput, 50)
     const t2 = setTimeout(focusInput, 200)
 
     const handleGlobalClick = (e) => {
       if (!e.target.closest('a, button')) {
-        inputRef.current?.focus()
+        focusInput()
       }
     }
     window.addEventListener('click', handleGlobalClick)
@@ -242,6 +252,7 @@ export default function App() {
         </div>,
       ])
     }
+    setTimeout(() => scrollToBottom(), 40)
   }
 
   const sendEmail = async (n, e, m) => {
@@ -807,12 +818,13 @@ export default function App() {
                 }
                 if (wizard) handleWizardInput(v)
                 else handleCommand(v)
-                setTimeout(scrollToBottom, 20)
+                setTimeout(() => scrollToBottom(), 30)
+                setTimeout(() => scrollToBottom(), 150)
               }}
               className="term-line"
             >
               {getPromptLabel()}
-              <div className="term-input-wrapper" onClick={() => inputRef.current?.focus()}>
+              <div className="term-input-wrapper" onClick={() => focusInput()}>
                 <span className="term-typed-text">{inputVal}</span>
                 <span className="term-block-cursor" />
                 <input
@@ -829,7 +841,7 @@ export default function App() {
                 />
               </div>
             </form>
-            <div ref={bottomAnchorRef} style={{ height: 1 }} />
+            <div ref={bottomAnchorRef} style={{ height: 24 }} />
           </div>
         </div>
       </main>
