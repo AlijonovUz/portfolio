@@ -2394,8 +2394,19 @@ export default function App() {
 
   // Yuqori navbar tugmasi bosilganda faol oynani boshqarish
   const handleNavClick = (section) => {
-    if (activeId && goToRegistryRef.current[activeId]) {
-      goToRegistryRef.current[activeId](section)
+    let targetWin = activeId ? windows.find((w) => w.id === activeId) : null
+    if (!targetWin && windows.length > 0) {
+      targetWin = windows[windows.length - 1]
+    }
+
+    if (targetWin) {
+      setWindows((prev) =>
+        prev.map((w) => (w.id === targetWin.id ? { ...w, isMinimized: false } : w))
+      )
+      activateWindow(targetWin.id)
+      if (goToRegistryRef.current[targetWin.id]) {
+        goToRegistryRef.current[targetWin.id](section)
+      }
     } else {
       createNewWindow(section)
     }
@@ -2428,6 +2439,36 @@ export default function App() {
           </div>
         )}
 
+        {windows.length > 0 && windows.every((w) => w.isMinimized) && (
+          <div className="empty-desktop">
+            <div className="empty-tux"><pre>{TUX}</pre></div>
+            <div style={{ marginTop: 12, color: 'var(--dim)', fontSize: 13 }}>Barcha oynalar kichraytirilgan</div>
+            <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
+              <button
+                className="btn-new-term"
+                onClick={() => {
+                  const target = windows.find((w) => w.id === activeId) || windows[windows.length - 1]
+                  if (target) restoreOrActivate(target.id)
+                }}
+              >
+                Oynani tiklash
+              </button>
+              {windows.length > 1 && (
+                <button
+                  className="btn-new-term"
+                  style={{ background: 'transparent', color: 'var(--fg)', borderColor: 'var(--line)' }}
+                  onClick={() => {
+                    setWindows((prev) => prev.map((w) => ({ ...w, isMinimized: false })))
+                    if (activeId) activateWindow(activeId)
+                  }}
+                >
+                  Barcha oynalarni tiklash
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
         {windows.map((w) => (
           <TerminalWindow
             key={w.id}
@@ -2456,10 +2497,9 @@ export default function App() {
                 key={w.id}
                 className={`win-tab ${w.id === activeId ? 'on' : ''} ${w.isMinimized ? 'min' : ''}`}
                 onClick={() => restoreOrActivate(w.id)}
-                title={`Oyna ${idx + 1}`}
+                title={w.isMinimized ? 'Kichraytirilgan (ochish uchun bosing)' : `Oyna ${idx + 1}`}
               >
                 {idx + 1}: {w.cur === 'home' ? '~' : `~/${w.cur}`}
-                {w.isMinimized ? ' (min)' : ''}
               </button>
             ))}
           </div>
