@@ -507,35 +507,20 @@ export default function App() {
       return
     }
 
-    // Tezkor sahifa chaqirish (about / resume / contact)
+    // Tezkor sahifa chaqirish (about / resume / contact) — faqat cd, output emas
     if (trimmed === 'about' || trimmed === './about') {
       setCur('about')
-      addHistory([
-        echoLine,
-        <div key={Date.now() + 1} className="o">
-          {outputs(goTo)['about']}
-        </div>,
-      ])
+      addHistory([echoLine])
       return
     }
     if (trimmed === 'resume' || trimmed === './resume') {
       setCur('resume')
-      addHistory([
-        echoLine,
-        <div key={Date.now() + 1} className="o">
-          {outputs(goTo)['resume']}
-        </div>,
-      ])
+      addHistory([echoLine])
       return
     }
     if (trimmed === 'contact' || trimmed === './contact') {
       setCur('contact')
-      addHistory([
-        echoLine,
-        <div key={Date.now() + 1} className="o">
-          {outputs(goTo)['contact']}
-        </div>,
-      ])
+      addHistory([echoLine])
       return
     }
 
@@ -553,6 +538,66 @@ export default function App() {
 
     if (trimmed === 'help') {
       showHelp(echoLine)
+      return
+    }
+
+    // whoami
+    if (trimmed === 'whoami') {
+      addHistory([echoLine, <div key={Date.now() + 1} className="term-msg">root</div>])
+      return
+    }
+
+    // uname
+    if (trimmed === 'uname' || trimmed === 'uname -a' || trimmed === 'uname -r') {
+      const full = trimmed === 'uname -a'
+        ? 'Linux alijonov 5.15.0-91-generic #101-Ubuntu SMP x86_64 GNU/Linux'
+        : 'Linux'
+      addHistory([echoLine, <div key={Date.now() + 1} className="term-msg">{full}</div>])
+      return
+    }
+
+    // uptime
+    if (trimmed === 'uptime') {
+      const now = new Date()
+      const h = now.getHours().toString().padStart(2, '0')
+      const m = now.getMinutes().toString().padStart(2, '0')
+      addHistory([echoLine, <div key={Date.now() + 1} className="term-msg"> {h}:{m}:00 up 3 years, 2:21,  1 user,  load average: 0.08, 0.04, 0.01</div>])
+      return
+    }
+
+    // date
+    if (trimmed === 'date') {
+      addHistory([echoLine, <div key={Date.now() + 1} className="term-msg">{new Date().toString()}</div>])
+      return
+    }
+
+    // echo
+    if (trimmed.startsWith('echo ')) {
+      const msg = trimmed.slice(5)
+      const cleaned = msg.replace(/^["']|["']$/g, '')
+      addHistory([echoLine, <div key={Date.now() + 1} className="term-msg">{cleaned}</div>])
+      return
+    }
+
+    // history
+    if (trimmed === 'history') {
+      if (cmdHistory.length === 0) {
+        addHistory([echoLine, <div key={Date.now() + 1} className="term-msg d">(buyruqlar tarixi bo'sh)</div>])
+      } else {
+        const histLines = cmdHistory.map((c, i) => (
+          <div key={i} className="term-msg">
+            <span className="d" style={{ display: 'inline-block', width: '5ch', textAlign: 'right', marginRight: 8 }}>{i + 1}</span>
+            {c}
+          </div>
+        ))
+        addHistory([echoLine, ...histLines])
+      }
+      return
+    }
+
+    // exit / logout
+    if (trimmed === 'exit' || trimmed === 'logout') {
+      addHistory([echoLine, <div key={Date.now() + 1} className="term-msg d">logout — sessiya yopilmaydi (bu brauzer :)</div>])
       return
     }
 
