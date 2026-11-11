@@ -265,6 +265,16 @@ export default function App() {
   const [inputVal, setInputVal] = useState('')
   const [loading, setLoading] = useState(false)
   const [selection, setSelection] = useState({ start: 0, end: 0 })
+  const [isTyping, setIsTyping] = useState(false)
+  const typingTimeoutRef = useRef(null)
+
+  const touchTyping = () => {
+    setIsTyping(true)
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false)
+    }, 600)
+  }
 
   const syncSelection = (targetEl) => {
     const el = targetEl || inputRef.current
@@ -1105,6 +1115,70 @@ export default function App() {
   }
 
   const handleKeyDown = (e) => {
+    touchTyping()
+
+    // Bash readline klaviatura kombinatsiyalari
+    if (e.ctrlKey) {
+      const k = e.key.toLowerCase()
+      if (k === 'c') {
+        e.preventDefault()
+        const v = inputVal
+        addHistory([
+          <div key={Date.now()} className="term-line term-echo">
+            <Prompt path={cur} />
+            <div className="term-input-wrapper">
+              <span className="term-typed-text">{v}</span>
+              <span className="d" style={{ marginLeft: 6 }}>^C</span>
+            </div>
+          </div>
+        ])
+        setInputValueAndCaret('')
+        setWizard(null)
+        return
+      }
+      if (k === 'l') {
+        e.preventDefault()
+        setHistory([])
+        setInitialCleared(true)
+        setWizard(null)
+        return
+      }
+      if (k === 'a') {
+        e.preventDefault()
+        setInputValueAndCaret(inputVal, 0)
+        return
+      }
+      if (k === 'e') {
+        e.preventDefault()
+        setInputValueAndCaret(inputVal, inputVal.length)
+        return
+      }
+      if (k === 'u') {
+        e.preventDefault()
+        const pos = selection.start
+        const remaining = inputVal.slice(pos)
+        setInputValueAndCaret(remaining, 0)
+        return
+      }
+      if (k === 'k') {
+        e.preventDefault()
+        const pos = selection.start
+        const remaining = inputVal.slice(0, pos)
+        setInputValueAndCaret(remaining, pos)
+        return
+      }
+      if (k === 'w') {
+        e.preventDefault()
+        const pos = selection.start
+        const before = inputVal.slice(0, pos).trimEnd()
+        const lastSpace = before.lastIndexOf(' ')
+        const newPos = lastSpace === -1 ? 0 : lastSpace + 1
+        const newVal = inputVal.slice(0, newPos) + inputVal.slice(pos)
+        setInputValueAndCaret(newVal, newPos)
+        return
+      }
+    }
+
     if (e.key === 'ArrowUp') {
       e.preventDefault()
       if (cmdHistory.length === 0) return
@@ -1347,7 +1421,7 @@ export default function App() {
                   return (
                     <span className="term-typed-text">
                       <span>{before}</span>
-                      <span className="term-cursor-block">{char}</span>
+                      <span className={`term-cursor-block ${isTyping ? 'solid' : ''}`}>{char}</span>
                       <span>{after}</span>
                     </span>
                   )
@@ -1358,6 +1432,7 @@ export default function App() {
                   className="term-real-input"
                   value={inputVal}
                   onChange={(e) => {
+                    touchTyping()
                     setInputVal(e.target.value)
                     syncSelection(e.target)
                   }}
