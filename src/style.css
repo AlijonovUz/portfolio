@@ -4,14 +4,14 @@
 *{box-sizing:border-box;margin:0;scrollbar-width:none;-ms-overflow-style:none}
 ::-webkit-scrollbar{display:none}
 
-html{min-height:100%;scroll-behavior:smooth}
-body{background:var(--bg);color:var(--fg);font:15px/1.65 "JetBrains Mono",ui-monospace,Consolas,monospace;min-height:100vh;overflow-x:hidden;overflow-y:auto;position:relative;display:flex;flex-direction:column}
+html{height:100%}
+body{background:var(--bg);color:var(--fg);font:15px/1.65 "JetBrains Mono",ui-monospace,Consolas,monospace;height:100vh;height:100dvh;overflow:hidden;position:relative;display:flex;flex-direction:column}
 body::before{content:"";position:fixed;inset:0;background:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:48px 48px;opacity:.35;mask-image:radial-gradient(circle at 50% 40%,#000,transparent 75%);z-index:0;pointer-events:none}
 .blob{position:fixed;border-radius:50%;filter:blur(90px);opacity:.5;z-index:0;pointer-events:none}
 .b1{width:380px;height:380px;background:var(--glow);top:-80px;left:-80px}
 .b2{width:420px;height:420px;background:rgba(56,189,248,.12);bottom:-120px;right:-100px}
 
-.panel{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 18px;background:var(--panel);border-bottom:1px solid var(--line);font-size:13px;user-select:none}
+.panel{flex-shrink:0;position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 18px;background:var(--panel);border-bottom:1px solid var(--line);font-size:13px;user-select:none}
 .panel .l{font-weight:800;color:var(--acc);white-space:nowrap}
 nav button{white-space:nowrap}
 nav{display:flex;gap:4px}
@@ -20,13 +20,17 @@ button:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
 nav button:hover,nav button.on{background:var(--glow);border-color:var(--acc);color:var(--acc)}
 #clk{color:var(--dim)}
 
-main{position:relative;z-index:1;max-width:980px;width:100%;margin:0 auto;padding:24px 16px 90px;flex:1}
-.win{background:var(--win);border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.4),0 0 0 1px var(--glow);overflow:hidden;min-height:480px}
-.bar{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line);color:var(--dim);font-size:12px;user-select:none}
+main{position:relative;z-index:1;max-width:980px;width:100%;margin:0 auto;padding:16px 16px calc(38px + env(safe-area-inset-bottom,0px));flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.win{background:var(--win);border:1px solid var(--line);border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,.4),0 0 0 1px var(--glow);overflow:hidden;flex:1;min-height:0;display:flex;flex-direction:column}
+.bar{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line);color:var(--dim);font-size:12px;user-select:none}
 .bar i{width:12px;height:12px;border-radius:50%;display:block}
 .bar span{margin-left:auto;margin-right:auto}
 
-.term{padding:20px 22px 28px;white-space:pre-wrap;word-break:break-word}
+.term{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:20px 22px 28px;white-space:pre-wrap;word-break:break-word;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.term::-webkit-scrollbar{display:block;width:6px}
+.term::-webkit-scrollbar-track{background:transparent}
+.term::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.term::-webkit-scrollbar-thumb:hover{background:var(--dim)}
 .u{color:var(--acc);font-weight:600}.h{color:var(--acc2);font-weight:600}.d{color:var(--dim)}.k{color:var(--pink)}
 .cur{display:inline-block;width:9px;height:1.15em;background:var(--acc);vertical-align:-2px;animation:bl 1s steps(1) infinite}
 @keyframes bl{50%{opacity:0}}
@@ -64,7 +68,7 @@ a{color:var(--acc2);text-decoration:none;border-bottom:1px dashed var(--acc2)}a:
 .st{position:fixed;left:0;right:0;bottom:0;z-index:100;display:flex;justify-content:space-between;padding:6px 16px calc(6px + env(safe-area-inset-bottom,0px));background:var(--acc);color:#04130a;font-size:12px;font-weight:600;user-select:none}
 
 @media(max-width:640px){
-  main{padding:12px 8px 80px}
+  main{padding:8px 8px calc(34px + env(safe-area-inset-bottom,0px))}
   body{font-size:14px}
   .panel{padding:8px 10px;font-size:12px}
   nav button{padding:4px 8px}

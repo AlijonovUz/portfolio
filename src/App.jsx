@@ -370,14 +370,16 @@ export default function App() {
 
   const scrollToBottom = (smooth = false) => {
     const behavior = smooth ? 'smooth' : 'auto'
+    if (termRef.current) {
+      if (smooth) {
+        termRef.current.scrollTo({ top: termRef.current.scrollHeight, behavior: 'smooth' })
+      } else {
+        termRef.current.scrollTop = termRef.current.scrollHeight
+      }
+    }
     if (bottomAnchorRef.current) {
       bottomAnchorRef.current.scrollIntoView({ behavior, block: 'end' })
     }
-    const maxScroll = Math.max(
-      document.body.scrollHeight,
-      document.documentElement.scrollHeight
-    )
-    window.scrollTo({ top: maxScroll, behavior })
   }
 
   useEffect(() => {
