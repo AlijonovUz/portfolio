@@ -258,7 +258,7 @@ export default function App() {
   const sendEmail = async (n, e, m) => {
     setLoading(true)
     addHistory([
-      <div key={Date.now()} className="term-msg"><span className="h">[*]</span> Resend orqali yuborilmoqda...</div>,
+      <div key={Date.now()} className="term-msg"><span className="h">[*]</span> Pochta serveriga ulanilmoqda...</div>,
     ])
     try {
       const res = await fetch('/api/send', {
