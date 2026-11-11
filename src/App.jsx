@@ -848,25 +848,43 @@ function TerminalWindow({
 
     // new / new-term / open
     if (trimmed === 'new' || trimmed === 'new-term' || trimmed === 'new-window') {
-      onSpawnWindow('home')
-      addHistory([
-        echoLine,
-        <div key={Date.now() + 1} className="term-msg">
-          <span className="u">[+]</span> Yangi terminal oynasi ochildi.
-        </div>,
-      ])
+      const ok = onSpawnWindow('home')
+      if (ok === false) {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            <span className="w">[!]</span> Maksimal 10 ta oyna ochish mumkin. Avval mavjud oynalardan birini yoping.
+          </div>,
+        ])
+      } else {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            <span className="u">[+]</span> Yangi terminal oynasi ochildi.
+          </div>,
+        ])
+      }
       return
     }
 
     if (trimmed.startsWith('open ') || trimmed === 'open') {
       const targetDir = trimmed.startsWith('open ') ? trimmed.slice(5).trim() : 'home'
-      onSpawnWindow(targetDir || 'home')
-      addHistory([
-        echoLine,
-        <div key={Date.now() + 1} className="term-msg">
-          <span className="u">[+]</span> Yangi oynada ochilmoqda: {targetDir}
-        </div>,
-      ])
+      const ok = onSpawnWindow(targetDir || 'home')
+      if (ok === false) {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            <span className="w">[!]</span> Maksimal 10 ta oyna ochish mumkin. Avval mavjud oynalardan birini yoping.
+          </div>,
+        ])
+      } else {
+        addHistory([
+          echoLine,
+          <div key={Date.now() + 1} className="term-msg">
+            <span className="u">[+]</span> Yangi oynada ochilmoqda: {targetDir}
+          </div>,
+        ])
+      }
       return
     }
 
@@ -1880,7 +1898,12 @@ export default function App() {
     })
   }
 
+  const MAX_WINDOWS = 10
+
   const createNewWindow = (targetCur = 'home') => {
+    if (windows.length >= MAX_WINDOWS) {
+      return false
+    }
     const id = 'term-' + Date.now() + '-' + Math.floor(Math.random() * 1000)
     const count = windows.length
     const offset = (count % 7) * 26
@@ -1909,6 +1932,7 @@ export default function App() {
 
     setWindows((prev) => [...prev, newWin])
     setActiveId(id)
+    return true
   }
 
   const closeWindow = (winId) => {
@@ -2092,13 +2116,6 @@ export default function App() {
           {[['home', '~'], ['about', 'about'], ['projects', 'projects'], ['resume', 'resume'], ['contact', 'contact']].map(([k, l]) => (
             <button key={k} className={activeCur === k && windows.length > 0 ? 'on' : ''} onClick={() => handleNavClick(k)}>{l}</button>
           ))}
-          <button
-            onClick={() => createNewWindow('home')}
-            style={{ color: 'var(--acc)', fontWeight: 700 }}
-            title="Yangi terminal oynasi ochish"
-          >
-            + oyna
-          </button>
         </nav>
         <span id="clk">{clock}</span>
       </div>
@@ -2148,9 +2165,11 @@ export default function App() {
                 {w.isMinimized ? ' (min)' : ''}
               </button>
             ))}
-            <button className="win-tab-add" onClick={() => createNewWindow('home')} title="Yangi terminal oynasi ochish">
-              + oyna
-            </button>
+            {windows.length < 10 && (
+              <button className="win-tab-add" onClick={() => createNewWindow('home')} title="Yangi terminal oynasi ochish (max 10)">
+                + oyna
+              </button>
+            )}
           </div>
         </div>
         <span>© {new Date().getFullYear()} alijonov.uz</span>
