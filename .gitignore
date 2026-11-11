@@ -1,0 +1,23 @@
+# Bog'liqliklar
+node_modules
+
+# Build natijasi
+dist
+
+# Loglar
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Muhit sozlamalari (maxfiy ma'lumotlar)
+.env
+.env.*
+
+# Tizim fayllari
+.DS_Store
+Thumbs.db
+
+# Muharrir sozlamalari
+.vscode
+.idea
