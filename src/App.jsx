@@ -712,9 +712,6 @@ export default function App() {
       if (!trimmed) return
       addHistory([
         <div key={Date.now()} className="term-msg"><span className="u">&gt;</span> Xabar: {trimmed}</div>,
-        <div key={Date.now() + 1} className="term-msg">
-          <span className="h">[?] Xabar yuborilsinmi? (y/n) [y]:</span>
-        </div>,
       ])
       setWizard({ ...wizard, message: trimmed, step: 'confirm' })
     } else if (wizard.step === 'confirm') {
