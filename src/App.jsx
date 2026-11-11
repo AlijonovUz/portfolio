@@ -617,7 +617,7 @@ export default function App() {
             {'  '}<span className="u">-h, --help</span>             Ushbu yordam oynasini chiqarish<br /><br />
             <span className="d">Examples:</span><br />
             {'  '}<span className="h">send-mail</span> <span className="d">(interaktiv rejim)</span><br />
-            {'  '}<span className="h">send-mail --name &quot;Alijonov Abdulbosit&quot; --email &quot;info@alijonov.uz&quot; --message &quot;Salom!&quot;</span>
+            {'  '}<span className="h">send-mail --name &quot;Alijonov Abdulbosit&quot; --email &quot;me@alijonov.uz&quot; --message &quot;Salom!&quot;</span>
           </div>,
         ])
         return
