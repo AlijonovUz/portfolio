@@ -321,6 +321,47 @@ function outputs(go) {
   }
 }
 
+function getDomainIp(target) {
+  const known = {
+    'kun.uz': '188.114.96.11',
+    'daryo.uz': '104.26.12.115',
+    'gazeta.uz': '104.21.32.45',
+    'alijonov.uz': '185.199.108.153',
+    'google.com': '142.250.185.78',
+    'github.com': '140.82.121.4',
+    'cloudflare.com': '104.16.132.229',
+    'yandex.ru': '77.88.55.66',
+    'telegram.org': '149.154.167.99',
+    'localhost': '127.0.0.1',
+  }
+  const clean = target.toLowerCase().replace(/^(https?:\/\/)?(www\.)?/, '').replace(/\/.*$/, '')
+  if (known[clean]) return { host: clean, ip: known[clean], valid: true }
+
+  // IPv4 check
+  if (/^(\d{1,3}\.){3}\d{1,3}$/.test(clean)) {
+    const parts = clean.split('.').map(Number)
+    if (parts.every((p) => p >= 0 && p <= 255)) {
+      return { host: clean, ip: clean, valid: true }
+    }
+  }
+
+  // Domain syntax check
+  if (/^[a-zA-Z0-9][-a-zA-Z0-9]*(\.[a-zA-Z0-9][-a-zA-Z0-9]*)+$/.test(clean)) {
+    let hash = 0
+    for (let i = 0; i < clean.length; i++) {
+      hash = (hash << 5) - hash + clean.charCodeAt(i)
+      hash |= 0
+    }
+    const o1 = 104 + (Math.abs(hash) % 80)
+    const o2 = (Math.abs(hash >> 3) % 250) + 1
+    const o3 = (Math.abs(hash >> 6) % 250) + 1
+    const o4 = (Math.abs(hash >> 9) % 250) + 1
+    return { host: clean, ip: `${o1}.${o2}.${o3}.${o4}`, valid: true }
+  }
+
+  return { host: clean, ip: null, valid: false }
+}
+
 /* ================== TERMINAL WINDOW COMPONENT ================== */
 function TerminalWindow({
   win,
@@ -368,6 +409,19 @@ function TerminalWindow({
   const [selection, setSelection] = useState({ start: 0, end: 0 })
   const [isTyping, setIsTyping] = useState(false)
   const typingTimeoutRef = useRef(null)
+
+  const [isPinging, setIsPinging] = useState(false)
+  const pingIntervalRef = useRef(null)
+  const pingCancelRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (pingIntervalRef.current) {
+        clearInterval(pingIntervalRef.current)
+        pingIntervalRef.current = null
+      }
+    }
+  }, [])
 
   const inputRef = useRef(null)
   const termRef = useRef(null)
@@ -528,10 +582,10 @@ function TerminalWindow({
       <span className="d">Type `send-mail --help&apos; to find out more about sending emails.</span><br /><br />
       {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cd [dir]</span><span className="h">pwd</span><br />
       {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cat &lt;file.md&gt;</span><span className="h">ls [-la]</span><br />
-      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>send-mail [options]</span><span className="h">clear</span><br />
-      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>new / open [dir]</span><span className="h">history</span><br />
-      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>whoami / uname / date</span><span className="h">help</span><br />
-      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>cd ..</span><br /><br />
+      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>ping &lt;host&gt;</span><span className="h">clear</span><br />
+      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>send-mail [options]</span><span className="h">history</span><br />
+      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>new / open [dir]</span><span className="h">help</span><br />
+      {'  '}<span className="h" style={{ display: 'inline-block', width: '28ch' }}>whoami / uname / date</span><span className="h">cd ..</span><br /><br />
       <span className="d">Directories:</span><br />
       {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>about/</span><span className="u">projects/</span><br />
       {'  '}<span className="u" style={{ display: 'inline-block', width: '28ch' }}>resume/</span><span className="u">contact/</span><br />
@@ -608,6 +662,141 @@ function TerminalWindow({
       ])
       setWizard({ step: 'message', name: nameVal, email: emailVal, message: '' })
     }
+  }
+
+  const handlePing = (cmdStr, echoLine) => {
+    const rawArgs = cmdStr.replace(/^ping\s*/, '').trim()
+    if (!rawArgs) {
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          ping: usage error: Destination address required
+        </div>,
+      ])
+      return
+    }
+
+    const parts = rawArgs.split(/\s+/).filter(Boolean)
+    let count = 0
+    let dest = ''
+
+    for (let i = 0; i < parts.length; i++) {
+      if (parts[i] === '-c' && parts[i + 1]) {
+        const n = parseInt(parts[i + 1], 10)
+        if (!isNaN(n) && n > 0) count = Math.min(n, 50)
+        i++
+      } else if (!parts[i].startsWith('-')) {
+        dest = parts[i]
+      }
+    }
+
+    if (!dest) {
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          ping: usage error: Destination address required
+        </div>,
+      ])
+      return
+    }
+
+    const { host, ip, valid } = getDomainIp(dest)
+    if (!valid || !ip) {
+      addHistory([
+        echoLine,
+        <div key={Date.now() + 1} className="term-msg">
+          ping: {dest}: No address associated with hostname
+        </div>,
+      ])
+      return
+    }
+
+    const maxPackets = count > 0 ? count : 30
+    const startTime = Date.now()
+    const rtts = []
+    let seq = 1
+
+    addHistory([
+      echoLine,
+      <div key={Date.now() + 1} className="term-msg" style={{ fontFamily: 'inherit' }}>
+        PING {host} ({ip}) 56(84) bytes of data.
+      </div>,
+    ])
+
+    setIsPinging(true)
+
+    const finishPing = (wasCancelled = false) => {
+      if (pingIntervalRef.current) {
+        clearInterval(pingIntervalRef.current)
+        pingIntervalRef.current = null
+      }
+      setIsPinging(false)
+      pingCancelRef.current = null
+
+      const totalTime = Date.now() - startTime
+      const transmitted = wasCancelled ? (seq - 1) : rtts.length
+      const received = rtts.length
+      const loss = transmitted > 0 ? Math.round(((transmitted - received) / transmitted) * 100) : 0
+
+      const statsNodes = []
+      if (wasCancelled) {
+        statsNodes.push(<span key="ctrlc" className="d" style={{ display: 'block', margin: '4px 0' }}>^C</span>)
+      }
+
+      if (rtts.length > 0) {
+        const min = Math.min(...rtts).toFixed(3)
+        const avg = (rtts.reduce((a, b) => a + b, 0) / rtts.length).toFixed(3)
+        const max = Math.max(...rtts).toFixed(3)
+        const mean = +avg
+        const variance = rtts.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / rtts.length
+        const mdev = Math.sqrt(variance).toFixed(3)
+
+        statsNodes.push(
+          <div key={Date.now() + 20} className="term-msg" style={{ fontFamily: 'inherit', marginTop: 4 }}>
+            --- {host} ping statistics ---<br />
+            {transmitted} packets transmitted, {received} received, {loss}% packet loss, time {totalTime}ms<br />
+            rtt min/avg/max/mdev = {min}/{avg}/{max}/{mdev} ms
+          </div>
+        )
+      } else {
+        statsNodes.push(
+          <div key={Date.now() + 20} className="term-msg" style={{ fontFamily: 'inherit', marginTop: 4 }}>
+            --- {host} ping statistics ---<br />
+            {transmitted} packets transmitted, 0 received, 100% packet loss, time {totalTime}ms
+          </div>
+        )
+      }
+
+      addHistory(statsNodes)
+      setTimeout(() => {
+        scrollToBottom()
+        focusInput()
+      }, 40)
+    }
+
+    pingCancelRef.current = () => finishPing(true)
+
+    pingIntervalRef.current = setInterval(() => {
+      if (seq > maxPackets) {
+        finishPing(false)
+        return
+      }
+
+      const baseMs = (host === 'kun.uz' || host.endsWith('.uz')) ? 81 : 48
+      const jitter = (Math.random() * 5) - 2.5
+      const spike = (seq === 17) ? 17.5 : 0
+      const rtt = +(baseMs + jitter + spike).toFixed(1)
+      rtts.push(rtt)
+
+      const line = `64 bytes from ${ip}: icmp_seq=${seq} ttl=50 time=${rtt} ms`
+      addHistory([
+        <div key={Date.now() + seq} className="term-msg" style={{ fontFamily: 'inherit' }}>
+          {line}
+        </div>,
+      ])
+      scrollToBottom()
+      seq++
+    }, 850)
   }
 
   const handleChainedCommand = (fullCmd, echoLine) => {
@@ -867,6 +1056,12 @@ function TerminalWindow({
     if (trimmed === 'clear') {
       setHistory([])
       setWizard(null)
+      return
+    }
+
+    // ping <destination>
+    if (trimmed === 'ping' || trimmed.startsWith('ping ') || trimmed.startsWith('ping\t')) {
+      handlePing(trimmed, echoLine)
       return
     }
 
@@ -1471,6 +1666,11 @@ function TerminalWindow({
       const k = e.key.toLowerCase()
       if (k === 'c') {
         e.preventDefault()
+        if (pingIntervalRef.current && pingCancelRef.current) {
+          pingCancelRef.current()
+          setInputValueAndCaret('')
+          return
+        }
         const v = inputVal
         addHistory([
           <div key={Date.now()} className="term-line term-echo">
@@ -1488,7 +1688,6 @@ function TerminalWindow({
       if (k === 'l') {
         e.preventDefault()
         setHistory([])
-        setInitialCleared(true)
         setWizard(null)
         return
       }
@@ -1652,6 +1851,7 @@ function TerminalWindow({
         { prefix: 'cat ', pool: files },
         { prefix: 'cd ', pool: cur === 'home' ? ['..', '~', ...dirs] : ['..', '../', ...dirs, '~', '~/'] },
         { prefix: 'open ', pool: ['home', 'about', 'projects', 'resume', 'contact'] },
+        { prefix: 'ping ', pool: ['kun.uz', 'daryo.uz', 'gazeta.uz', 'alijonov.uz', 'google.com', 'github.com'] },
       ]
 
       for (const cfg of prefixConfigs) {
@@ -1664,6 +1864,7 @@ function TerminalWindow({
 
       if (val === 'cat') { setInputValueAndCaret('cat '); return }
       if (val === 'cd') { setInputValueAndCaret('cd '); return }
+      if (val === 'ping') { setInputValueAndCaret('ping '); return }
       if (val === 'rm') { setInputValueAndCaret('rm '); return }
       if (val === 'rm -') { setInputValueAndCaret('rm -rf '); return }
       if (val === 'vim') { setInputValueAndCaret('vim '); return }
@@ -1674,7 +1875,7 @@ function TerminalWindow({
       if (val === 'open') { setInputValueAndCaret('open '); return }
 
       const commands = [
-        'help', 'clear', 'send-mail', 'pwd', 'ls', 'cd', 'cat',
+        'help', 'clear', 'ping', 'send-mail', 'pwd', 'ls', 'cd', 'cat',
         'whoami', 'uname', 'uptime', 'date', 'history',
         'new', 'new-term', 'open',
         'rm -rf', 'rm', 'mkdir', 'rmdir', 'touch', 'vim', 'nano', 'sudo'
@@ -1701,6 +1902,13 @@ function TerminalWindow({
       className={`win ${isActive ? 'is-active' : 'is-inactive'} ${win.isMaximized ? 'is-maximized' : ''}`}
       style={windowStyle}
       onPointerDown={onActivate}
+      onKeyDown={(e) => {
+        if (isPinging && e.ctrlKey && e.key.toLowerCase() === 'c') {
+          e.preventDefault()
+          if (pingCancelRef.current) pingCancelRef.current()
+        }
+      }}
+      tabIndex={-1}
     >
       {/* 8-yo'nalishli resize tutqichlari */}
       {!win.isMaximized && !isMobile && (
@@ -1757,7 +1965,28 @@ function TerminalWindow({
           <div key={i}>{el}</div>
         ))}
 
-        <form
+        {isPinging ? (
+          <div className="term-line" style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span className="d" style={{ fontSize: 12 }}>ping bajarilmoqda...</span>
+            <button
+              type="button"
+              onClick={() => pingCancelRef.current && pingCancelRef.current()}
+              style={{
+                background: 'rgba(255, 95, 87, 0.15)',
+                color: '#ff5f57',
+                border: '1px solid rgba(255, 95, 87, 0.4)',
+                padding: '2px 10px',
+                borderRadius: 4,
+                fontSize: 11,
+                fontFamily: 'inherit',
+                cursor: 'pointer',
+              }}
+            >
+              ^C To&apos;xtatish
+            </button>
+          </div>
+        ) : (
+          <form
           onSubmit={(e) => {
             e.preventDefault()
             if (loading) return
@@ -1833,6 +2062,7 @@ function TerminalWindow({
             />
           </div>
         </form>
+        )}
         <div ref={bottomAnchorRef} style={{ height: 24 }} />
       </div>
     </div>
