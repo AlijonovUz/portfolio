@@ -1338,18 +1338,18 @@ export default function App() {
                   }
 
                   const pos = Math.min(Math.max(0, start), inputVal.length)
-                  const charUnderCursor = pos < inputVal.length ? (inputVal[pos] === ' ' ? '\u00A0' : inputVal[pos]) : ''
+                  const before = inputVal.slice(0, pos)
+                  const char = pos < inputVal.length
+                    ? (inputVal[pos] === ' ' ? '\u00A0' : inputVal[pos])
+                    : '\u00A0'
+                  const after = pos < inputVal.length ? inputVal.slice(pos + 1) : ''
 
                   return (
-                    <>
-                      <span className="term-typed-text">{inputVal}</span>
-                      <span
-                        className="term-block-cursor"
-                        style={{ left: `${pos}ch` }}
-                      >
-                        {charUnderCursor}
-                      </span>
-                    </>
+                    <span className="term-typed-text">
+                      <span>{before}</span>
+                      <span className="term-cursor-block">{char}</span>
+                      <span>{after}</span>
+                    </span>
                   )
                 })()}
                 <input
