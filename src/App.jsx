@@ -2442,7 +2442,7 @@ export default function App() {
         {windows.length > 0 && windows.every((w) => w.isMinimized) && (
           <div className="empty-desktop">
             <div className="empty-tux"><pre>{TUX}</pre></div>
-            <div style={{ marginTop: 12, color: 'var(--dim)', fontSize: 13 }}>Barcha oynalar kichraytirilgan</div>
+            <div style={{ marginTop: 12, color: 'var(--dim)', fontSize: 13 }}>Barcha terminal oynalari kichraytirilgan</div>
             <div style={{ marginTop: 16, display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
               <button
                 className="btn-new-term"
