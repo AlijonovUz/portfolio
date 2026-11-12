@@ -15,7 +15,10 @@ body::before{content:"";position:fixed;inset:0;background:linear-gradient(var(--
 .panel{flex-shrink:0;position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 18px;background:var(--panel);border-bottom:1px solid var(--line);font-size:13px;user-select:none}
 .panel .l{font-weight:800;color:var(--acc);white-space:nowrap}
 nav button{white-space:nowrap}
-nav{display:flex;align-items:center;gap:4px}
+.panel-nav{position:absolute;left:0;right:0;width:calc(100% - 32px);max-width:940px;margin:0 auto;display:flex;align-items:center;pointer-events:none}
+.panel-nav > *{pointer-events:auto}
+.nav-sections{display:flex;align-items:center;gap:4px}
+.nav-tools{display:flex;align-items:center;gap:4px;margin-left:245px}
 button{font:inherit;color:var(--fg);background:none;border:1px solid transparent;padding:4px 12px;border-radius:8px;cursor:pointer;transition:.15s}
 button:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
 nav button:hover,nav button.on{background:var(--glow);border-color:var(--acc);color:var(--acc)}
@@ -112,7 +115,9 @@ a{color:var(--acc2);text-decoration:none;border-bottom:1px dashed var(--acc2)}a:
   .resize-handle{display:none!important}
   body{font-size:13px}
   .panel{padding:8px 10px;font-size:12px;justify-content:center}
-  nav{gap:4px;overflow-x:auto;scrollbar-width:none}
+  .panel-nav{position:static;width:auto;max-width:100%;margin:0;pointer-events:auto;justify-content:center;gap:4px;overflow-x:auto;scrollbar-width:none}
+  .nav-sections{gap:4px}
+  .nav-tools{margin-left:6px}
   nav button{padding:4px 8px}
   #clk{display:none}
   .nf pre{display:none}
@@ -148,7 +153,7 @@ html.crt #root{animation:crt-flicker 7s infinite}
 .boot-skip{position:absolute;left:20px;bottom:calc(16px + env(safe-area-inset-bottom,0px));color:var(--dim);font-size:11px}
 
 /* ===== Buyruqlar menyusi ===== */
-.pal-btn{border:1px solid var(--line);padding:3px 10px;border-radius:8px;font-size:12px;color:var(--dim);white-space:nowrap;flex-shrink:0;margin-left:14px}
+.pal-btn{border:1px solid var(--line);padding:3px 10px;border-radius:8px;font-size:12px;color:var(--dim);white-space:nowrap;flex-shrink:0;margin-left:0}
 .pal-btn:hover{border-color:var(--acc);color:var(--acc)}
 .pal-btn-m{display:none}
 .pal-back{position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.55);display:flex;align-items:flex-start;justify-content:center;padding:12vh 12px 0}
