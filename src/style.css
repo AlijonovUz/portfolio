@@ -15,7 +15,7 @@ body::before{content:"";position:fixed;inset:0;background:linear-gradient(var(--
 .panel{flex-shrink:0;position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 18px;background:var(--panel);border-bottom:1px solid var(--line);font-size:13px;user-select:none}
 .panel .l{font-weight:800;color:var(--acc);white-space:nowrap}
 nav button{white-space:nowrap}
-nav{display:flex;gap:4px}
+nav{display:flex;align-items:center;gap:4px}
 button{font:inherit;color:var(--fg);background:none;border:1px solid transparent;padding:4px 12px;border-radius:8px;cursor:pointer;transition:.15s}
 button:focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
 nav button:hover,nav button.on{background:var(--glow);border-color:var(--acc);color:var(--acc)}
