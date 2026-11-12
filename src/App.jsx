@@ -1,4 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
+import {
+  BootScreen, CommandPalette, ExtraHelp, NOT_FOUND, QuickKeys, THEMES,
+  applyTheme, handleExtraCommand, isCrt, markBooted, setCrt, shouldBoot,
+} from './extras.jsx'
 
 /* ================== MA'LUMOTLAR VA KONSTANTALAR ================== */
 const PROJECTS = [
@@ -236,6 +240,12 @@ function outputs(go) {
         <button onClick={() => go('resume')}>./resume</button>
         <button onClick={() => go('contact')}>./contact</button>
       </div>,
+      <div className="hint" key="hint">Terminalga buyruq yozing yoki quyidagilarni bosing:</div>,
+      <div className="chips" key="chips">
+        {['help', 'send-mail', 'git log', 'theme', 'fortune'].map((c) => (
+          <button key={c} type="button" data-run={c}>{c}</button>
+        ))}
+      </div>,
     ],
     projects: [
       <div className="k" key="h"># Loyihalar (Projects)</div>,
@@ -376,6 +386,7 @@ function TerminalWindow({
   registerGoTo,
   onStartDrag,
   onStartResize,
+  onOpenPalette,
 }) {
   const [cur, setCur] = useState(win.cur || 'home')
   const curRef = useRef(cur)
@@ -389,7 +400,19 @@ function TerminalWindow({
   const [history, setHistory] = useState(() => {
     const initCur = win.cur || 'home'
     const initCmd = initCur === 'home' ? 'cat README.md' : `cat ${initCur}.md`
+    const notFound = win.id === 'term-1' && NOT_FOUND ? [
+      <div key="nf-echo" className="term-line term-echo">
+        <Prompt path="home" />
+        <div className="term-input-wrapper">
+          <span className="term-typed-text">cd {NOT_FOUND}</span>
+        </div>
+      </div>,
+      <div key="nf-msg" className="term-msg">
+        bash: cd: {NOT_FOUND}: No such file or directory
+      </div>,
+    ] : []
     return [
+      ...notFound,
       <div key="init-echo" className="term-line term-echo">
         <Prompt path={initCur} />
         <div className="term-input-wrapper">
@@ -563,7 +586,7 @@ function TerminalWindow({
     try {
       const res = await fetch('/api/send', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'X-Portfolio': 'terminal' },
         body: JSON.stringify({ name: n, email: e, message: m }),
       })
       const data = await res.json()
@@ -612,7 +635,8 @@ function TerminalWindow({
       {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>projects.md</span><span>meetly.md</span><br />
       {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>authly.md</span><span>fragmently.md</span><br />
       {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>resume.md</span><span>contact.md</span><br />
-      {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>resume.pdf</span>
+      {'  '}<span style={{ display: 'inline-block', width: '28ch' }}>resume.pdf</span><br /><br />
+      <ExtraHelp />
     </div>
   )
 
@@ -1603,6 +1627,13 @@ function TerminalWindow({
       return
     }
 
+    if (handleExtraCommand(trimmed, {
+      echoLine,
+      addHistory,
+      neofetch: outputs(goToProxy).home[0],
+      openPalette: onOpenPalette,
+    })) return
+
     const tokens = parseCliArgs(trimmed)
     const cmd = tokens[0]
 
@@ -1963,12 +1994,39 @@ function TerminalWindow({
         'help', 'clear', 'ping', 'send-mail', 'pwd', 'ls', 'cd', 'cat',
         'whoami', 'uname', 'uptime', 'date', 'history',
         'new', 'new-term', 'open',
-        'rm -rf', 'rm', 'mkdir', 'rmdir', 'touch', 'vim', 'nano', 'sudo'
+        'rm -rf', 'rm', 'mkdir', 'rmdir', 'touch', 'vim', 'nano', 'sudo',
+        'theme', 'crt', 'git', 'fortune', 'cowsay', 'neofetch', 'menu'
       ]
       const standalonePool = [...files, ...dirs, ...commands]
       tryComplete('', trimmed, standalonePool)
       return
     }
+  }
+
+  // Tugma/chip/menyudan buyruq ishga tushirish
+  const runFromUI = (c) => {
+    if (loading || isPinging || wizard) return
+    setCmdHistory((prev) => [...prev, c])
+    setHistoryIndex(-1)
+    handleCommand(c)
+    if (!isMobile) setTimeout(() => focusInput(), 30)
+  }
+  const runRef = useRef(null)
+  runRef.current = runFromUI
+
+  useEffect(() => {
+    if (!isActive) return
+    const h = (e) => { if (runRef.current && e.detail && e.detail.cmd) runRef.current(e.detail.cmd) }
+    window.addEventListener('term-run', h)
+    return () => window.removeEventListener('term-run', h)
+  }, [isActive])
+
+  // Telefondagi tezkor tugmalar uchun klaviatura hodisasini yuborish
+  const pressKey = (init) => {
+    const el = inputRef.current
+    if (!el) return
+    el.dispatchEvent(new KeyboardEvent('keydown', { ...init, bubbles: true, cancelable: true }))
+    el.focus({ preventScroll: true })
   }
 
   const windowStyle = isMobile
@@ -2045,7 +2103,15 @@ function TerminalWindow({
       </div>
 
       {/* Terminal kontenti va ichki scroll */}
-      <div className="term" ref={termRef} onClick={() => focusInput()}>
+      <div
+        className="term"
+        ref={termRef}
+        onClick={(e) => {
+          const b = e.target.closest && e.target.closest('[data-run]')
+          if (b) { runFromUI(b.getAttribute('data-run')); return }
+          focusInput()
+        }}
+      >
         {history.map((el, i) => (
           <div key={i}>{el}</div>
         ))}
@@ -2122,6 +2188,7 @@ function TerminalWindow({
         </form>
         <div ref={bottomAnchorRef} style={{ height: 24 }} />
       </div>
+      {isMobile && isActive && <QuickKeys onKey={pressKey} onRun={runFromUI} />}
     </div>
   )
 }
@@ -2154,6 +2221,21 @@ export default function App() {
   const [maxZIndex, setMaxZIndex] = useState(10)
   const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 640)
   const goToRegistryRef = useRef({})
+  const [booting, setBooting] = useState(() => shouldBoot())
+  const [paletteOpen, setPaletteOpen] = useState(false)
+
+  // Ctrl+/ (yoki Cmd+/) — buyruqlar menyusi
+  useEffect(() => {
+    const onKey = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+        e.preventDefault()
+        e.stopPropagation()
+        setPaletteOpen((o) => !o)
+      }
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [])
 
   const registerGoTo = (winId, fn) => {
     if (fn) {
@@ -2412,11 +2494,41 @@ export default function App() {
     }
   }
 
+  const runInTerminal = (cmd) => {
+    const fire = () => window.dispatchEvent(new CustomEvent('term-run', { detail: { cmd } }))
+    const target = (activeId && windows.find((w) => w.id === activeId)) || windows[windows.length - 1]
+    if (!target) {
+      createNewWindow('home')
+      setTimeout(fire, 200)
+      return
+    }
+    if (target.isMinimized) restoreOrActivate(target.id)
+    else activateWindow(target.id)
+    setTimeout(fire, 80)
+  }
+
+  const paletteItems = [
+    ...[['home', 'Bosh sahifa (~)'], ['about', 'about'], ['projects', 'projects'], ['resume', 'resume'], ['contact', 'contact']]
+      .map(([k, l]) => ({ id: 'go-' + k, group: 'bo‘lim', label: l, hint: k === 'home' ? 'cd ~' : 'cd ' + k, run: () => handleNavClick(k) })),
+    { id: 'pdf', group: 'fayl', label: 'resume.pdf ochish', run: () => window.open('/resume.pdf', '_blank', 'noopener') },
+    { id: 'new', group: 'oyna', label: 'Yangi terminal ochish', hint: 'new', run: () => createNewWindow('home') },
+    { id: 'mail', group: 'buyruq', label: 'Xabar yuborish', hint: 'send-mail', run: () => runInTerminal('send-mail') },
+    { id: 'git', group: 'buyruq', label: 'Oxirgi commit’lar', hint: 'git log', run: () => runInTerminal('git log') },
+    { id: 'help', group: 'buyruq', label: 'Yordam', hint: 'help', run: () => runInTerminal('help') },
+    { id: 'fortune', group: 'buyruq', label: 'Dasturchi hikmati', hint: 'fortune', run: () => runInTerminal('fortune') },
+    { id: 'neofetch', group: 'buyruq', label: 'Tizim ma’lumoti', hint: 'neofetch', run: () => runInTerminal('neofetch') },
+    ...['auto', ...THEMES].map((t) => ({ id: 'theme-' + t, group: 'mavzu', label: 'Mavzu: ' + t, hint: 'theme ' + t, run: () => applyTheme(t) })),
+    { id: 'crt', group: 'effekt', label: isCrt() ? 'CRT effektini o‘chirish' : 'CRT effektini yoqish', hint: 'crt', run: () => setCrt(!isCrt()) },
+    { id: 'boot', group: 'effekt', label: 'Yuklanish animatsiyasini qayta ko‘rsatish', run: () => setBooting(true) },
+  ]
+
   const activeWindow = windows.find((w) => w.id === activeId)
   const activeCur = activeWindow ? activeWindow.cur : 'home'
 
   return (
     <>
+      {booting && <BootScreen onDone={() => { markBooted(); setBooting(false) }} />}
+      {paletteOpen && <CommandPalette items={paletteItems} onClose={() => setPaletteOpen(false)} />}
       <div className="blob b1" /><div className="blob b2" />
       <div className="panel">
         <span className="l"><span style={{ color: 'var(--acc2)', marginRight: 6 }}>&gt;_</span>alijonov.uz</span>
@@ -2425,6 +2537,9 @@ export default function App() {
             <button key={k} className={activeCur === k && windows.length > 0 ? 'on' : ''} onClick={() => handleNavClick(k)}>{l}</button>
           ))}
         </nav>
+        <button type="button" className="pal-btn" onClick={() => setPaletteOpen(true)} aria-label="Buyruqlar menyusi (Ctrl+/)" title="Buyruqlar menyusi (Ctrl+/)">
+          <span className="pal-btn-d">menu · Ctrl+/</span><span className="pal-btn-m">☰</span>
+        </button>
         <span id="clk">{clock}</span>
       </div>
 
@@ -2484,6 +2599,7 @@ export default function App() {
             registerGoTo={registerGoTo}
             onStartDrag={(e) => handleStartDrag(w.id, e)}
             onStartResize={(dir, e) => handleStartResize(w.id, dir, e)}
+            onOpenPalette={() => setPaletteOpen(true)}
           />
         ))}
       </main>

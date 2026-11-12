@@ -1,3 +1,49 @@
+const MAX = { name: 80, email: 120, message: 2000 }
+const WINDOW_MS = 10 * 60 * 1000 
+const PER_IP = 3 
+const HOUR_MS = 60 * 60 * 1000
+const GLOBAL_PER_HOUR = 30 
+const ipHits = new Map()
+const recent = new Map()
+let globalHits = []
+
+function clientIp(req) {
+  const fwd = req.headers['x-forwarded-for']
+  return (fwd ? String(fwd).split(',')[0].trim() : req.socket?.remoteAddress) || 'unknown'
+}
+
+function tooMany(ip) {
+  const now = Date.now()
+  const hits = (ipHits.get(ip) || []).filter((t) => now - t < WINDOW_MS)
+  globalHits = globalHits.filter((t) => now - t < HOUR_MS)
+  if (hits.length >= PER_IP || globalHits.length >= GLOBAL_PER_HOUR) return true
+  hits.push(now)
+  ipHits.set(ip, hits)
+  globalHits.push(now)
+  if (ipHits.size > 1000) {
+    for (const [k, v] of ipHits) if (!v.some((t) => now - t < WINDOW_MS)) ipHits.delete(k)
+  }
+  return false
+}
+
+function dupKey(ip, message) {
+  return ip + '|' + message.trim().toLowerCase()
+}
+
+function isDuplicate(ip, message) {
+  const prev = recent.get(dupKey(ip, message))
+  return Boolean(prev && Date.now() - prev < HOUR_MS)
+}
+
+function markSent(ip, message) {
+  const now = Date.now()
+  recent.set(dupKey(ip, message), now)
+  if (recent.size > 1000) {
+    for (const [k, t] of recent) if (now - t >= HOUR_MS) recent.delete(k)
+  }
+}
+// ======================================
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Faqat POST so‘rovi qabul qilinadi' })
@@ -8,17 +54,35 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'RESEND_API_KEY topilmadi' })
   }
 
+  if (!String(req.headers['content-type'] || '').includes('application/json') || req.headers['x-portfolio'] !== 'terminal') {
+    return res.status(403).json({ error: 'So‘rov rad etildi' })
+  }
+
   const { name, email, message } = req.body || {}
 
-  if (!name || !name.trim()) {
+  if (typeof name !== 'string' || !name.trim()) {
     return res.status(400).json({ error: 'Ismingizni kiriting' })
   }
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'To‘g‘ri email manzilini kiriting' })
   }
-  if (!message || !message.trim()) {
+  if (typeof message !== 'string' || !message.trim()) {
     return res.status(400).json({ error: 'Xabar matnini kiriting' })
   }
+  if (name.length > MAX.name || email.length > MAX.email || message.length > MAX.message) {
+    return res.status(400).json({ error: `Matn juda uzun (ism ${MAX.name}, email ${MAX.email}, xabar ${MAX.message} belgigacha)` })
+  }
+
+  const ip = clientIp(req)
+  if (isDuplicate(ip, message)) {
+    return res.status(429).json({ error: 'Bu xabar allaqachon yuborilgan' })
+  }
+  if (tooMany(ip)) {
+    return res.status(429).json({ error: 'Juda ko‘p urinish. Birozdan keyin qayta urinib ko‘ring' })
+  }
+  markSent(ip, message)
+
+  const safeName = name.replace(/[\r\n]+/g, ' ').trim()
 
   try {
     const response = await fetch('https://api.resend.com/emails', {
@@ -31,7 +95,7 @@ export default async function handler(req, res) {
         from: 'Portfolio <onboarding@resend.dev>',
         to: ['alijonov.me@gmail.com'],
         reply_to: email.trim(),
-        subject: `[alijonov.uz] Yangi xabar: ${name.trim()}`,
+        subject: `[alijonov.uz] Yangi xabar: ${safeName}`,
         html: `
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #ffffff;">
             <h2 style="color: #0f172a; margin-top: 0; border-bottom: 2px solid #22c55e; padding-bottom: 8px;">Portfolio orqali yangi xabar</h2>
@@ -56,7 +120,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ success: true, id: data.id })
   } catch (err) {
-    return res.status(500).json({ error: 'Server xatoligi: ' + err.message })
+    return res.status(500).json({ error: 'Server xatoligi. Keyinroq qayta urinib ko‘ring' })
   }
 }
 
