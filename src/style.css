@@ -169,4 +169,6 @@ html.crt #root{animation:crt-flicker 7s infinite}
 .qk{flex-shrink:0;display:flex;gap:6px;padding:6px 8px;background:var(--panel);border-top:1px solid var(--line);overflow-x:auto}
 .qk button{flex:0 0 auto;border:1px solid var(--line);padding:8px 13px;font-size:12px;border-radius:8px;white-space:nowrap}
 .qk button:active{background:var(--glow);border-color:var(--acc);color:var(--acc)}
-@media(max-width:640px){.pal-btn-d{display:none}.pal-btn-m{display:inline}.pal-btn{padding:3px 9px}}
+.gh-nav-btn{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line)!important;padding:4px 8px;border-radius:8px;color:var(--dim)!important;text-decoration:none!important;transition:.15s;flex-shrink:0;line-height:1}
+.gh-nav-btn:hover{border-color:var(--acc)!important;color:var(--acc)!important;background:var(--glow)}
+@media(max-width:640px){.pal-btn-d{display:none}.pal-btn-m{display:inline}.pal-btn{padding:3px 9px}.gh-nav-btn{display:none!important}}
