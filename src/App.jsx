@@ -227,8 +227,8 @@ function outputs(go) {
       <div className="nf" key="nf">
         <pre>{TUX}</pre>
         <div style={{ whiteSpace: 'normal' }}>
-          <div className="row"><span className="u">root</span><span className="d">@</span><span className="u">alijonov.uz</span></div>
-          <div className="d">─────────────────</div>
+          <div className="row"><span className="u" style={{ fontWeight: 700 }}># Hello World</span></div>
+          <div className="d">─────────────</div>
           {[['Role', 'Backend developer'], ['OS', 'Ubuntu'], ['Stack', 'Python · Django · FastAPI'], ['DB', 'PostgreSQL · MySQL'], ['Tools', 'Docker · Git · Celery'], ['From', 'Fergana, Uzbekistan'], ['Uptime', '2021-yildan beri']].map(([a, b]) => (
             <div className="row" key={a}><span className="h" style={{ display: 'inline-block', width: '8ch' }}>{a}</span>: {b}</div>
           ))}
