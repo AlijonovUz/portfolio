@@ -3,6 +3,7 @@ import {
   BootScreen, CommandPalette, ExtraHelp, NOT_FOUND, QuickKeys, THEMES,
   applyTheme, handleExtraCommand, isCrt, markBooted, setCrt, shouldBoot,
 } from './extras.jsx'
+import { Robot, getRobotPrefs, setRobotPref } from './robot.jsx'
 
 /* ================== MA'LUMOTLAR VA KONSTANTALAR ================== */
 const PROJECTS = [
@@ -1077,6 +1078,7 @@ function TerminalWindow({
         continue
       }
 
+      window.dispatchEvent(new CustomEvent('term-cmd-error', { detail: { cmd: sub, raw: trimmed } }))
       outputNodes.push(
         <div key={Date.now() + i} className="term-msg">
           bash: {sub}: command not found
@@ -1095,6 +1097,7 @@ function TerminalWindow({
   const handleCommand = (raw) => {
     const trimmed = raw.trim()
     if (!trimmed) return
+    window.dispatchEvent(new CustomEvent('term-cmd', { detail: { cmd: trimmed } }))
 
     const echoLine = (
       <div key={Date.now()} className="term-line term-echo">
@@ -1643,6 +1646,7 @@ function TerminalWindow({
     }
 
     // Noma'lum buyruq
+    window.dispatchEvent(new CustomEvent('term-cmd-error', { detail: { cmd, raw: trimmed } }))
     addHistory([
       echoLine,
       <div key={Date.now() + 1} className="term-msg">
@@ -1995,7 +1999,7 @@ function TerminalWindow({
         'whoami', 'uname', 'uptime', 'date', 'history',
         'new', 'new-term', 'open',
         'rm -rf', 'rm', 'mkdir', 'rmdir', 'touch', 'vim', 'nano', 'sudo',
-        'theme', 'crt', 'git', 'fortune', 'cowsay', 'neofetch', 'menu'
+        'theme', 'crt', 'git', 'fortune', 'cowsay', 'neofetch', 'menu', 'robot'
       ]
       const standalonePool = [...files, ...dirs, ...commands]
       tryComplete('', trimmed, standalonePool)
@@ -2519,6 +2523,8 @@ export default function App() {
     { id: 'neofetch', group: 'buyruq', label: 'Tizim ma’lumoti', hint: 'neofetch', run: () => runInTerminal('neofetch') },
     ...['auto', ...THEMES].map((t) => ({ id: 'theme-' + t, group: 'mavzu', label: 'Mavzu: ' + t, hint: 'theme ' + t, run: () => applyTheme(t) })),
     { id: 'crt', group: 'effekt', label: isCrt() ? 'CRT effektini o‘chirish' : 'CRT effektini yoqish', hint: 'crt', run: () => setCrt(!isCrt()) },
+    { id: 'robot-vis', group: 'robot', label: getRobotPrefs().hidden ? 'Robotni ko‘rsatish' : 'Robotni yashirish', hint: 'robot on/off', run: () => setRobotPref('hidden', !getRobotPrefs().hidden) },
+    { id: 'robot-quiet', group: 'robot', label: getRobotPrefs().quiet ? 'Robot maslahat bersin' : 'Robot jim tursin', hint: 'robot quiet/talk', run: () => setRobotPref('quiet', !getRobotPrefs().quiet) },
     { id: 'boot', group: 'effekt', label: 'Yuklanish animatsiyasini qayta ko‘rsatish', run: () => setBooting(true) },
   ]
 
@@ -2641,6 +2647,13 @@ export default function App() {
           alijonov.uz
         </span>
       </div>
+
+      <Robot
+        projects={PROJECTS.map(({ slug, name }) => ({ slug, name }))}
+        onRun={runInTerminal}
+        onOpenPdf={() => window.open(RESUME_PDF, '_blank', 'noopener')}
+        onOpenPalette={() => setPaletteOpen(true)}
+      />
     </>
   )
 }

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { getRobotPrefs, setRobotPref } from './robot.jsx'
+import { getSoundPref, setSoundPref } from './sound.js'
 
 /* ================== Saqlash (localStorage xavfsiz o'ramasi) ================== */
 const store = {
@@ -284,7 +286,7 @@ export function ExtraHelp() {
       {'  '}<span className="h" style={col}>theme [nom]</span><span className="h">crt [on|off]</span><br />
       {'  '}<span className="h" style={col}>git log</span><span className="h">fortune</span><br />
       {'  '}<span className="h" style={col}>cowsay &lt;matn&gt;</span><span className="h">neofetch</span><br />
-      {'  '}<span className="h" style={col}>menu (Ctrl+/)</span>
+      {'  '}<span className="h" style={col}>menu (Ctrl+/)</span><span className="h">robot [action|help]</span>
     </>
   )
 }
@@ -340,6 +342,73 @@ export function handleExtraCommand(trimmed, ctx) {
 
   if (cmd === 'neofetch') {
     addHistory([echoLine, <div key={k('n')} className="o">{neofetch}</div>])
+    return true
+  }
+
+  if (cmd === 'robot') {
+    const sub = (parts[1] || '').toLowerCase()
+    const opt = (parts[2] || '').toLowerCase()
+
+    if (!sub || sub === 'help') {
+      const p = getRobotPrefs()
+      const snd = getSoundPref()
+      addHistory([echoLine, msg(
+        <>
+          <span className="p font-bold">Rootik — terminal hamrohi va interaktiv yordamchisi.</span>
+          <br /><span className="d">Holat: </span>{p.hidden ? 'yashirin' : 'faol'}, {p.quiet ? 'jim' : 'maslahat beradi'}, ovoz: {snd ? 'yoqiq' : 'o‘chiq'}
+          <br /><br />
+          <span className="d">Harakat buyruqlari:</span><br />
+          {'  '}<span className="h" style={{ display: 'inline-block', width: '22ch' }}>robot dance</span><span>Ritmik raqsga tushish</span><br />
+          {'  '}<span className="h" style={{ display: 'inline-block', width: '22ch' }}>robot hop</span><span>Quvonch bilan baland sakrash</span><br />
+          {'  '}<span className="h" style={{ display: 'inline-block', width: '22ch' }}>robot follow</span><span>Sichqoncha kursoriga ergashish</span><br />
+          {'  '}<span className="h" style={{ display: 'inline-block', width: '22ch' }}>robot stop</span><span>Harakatni to‘xtatish</span><br />
+          {'  '}<span className="h" style={{ display: 'inline-block', width: '22ch' }}>robot knock</span><span>Oyna ramkasini taqillatish</span><br />
+          {'  '}<span className="h" style={{ display: 'inline-block', width: '22ch' }}>robot sleep</span><span>Uxlash rejimiga o‘tish</span><br />
+          {'  '}<span className="h" style={{ display: 'inline-block', width: '22ch' }}>robot wake</span><span>Uyqudan uyg‘otish</span><br /><br />
+          <span className="d">Sozlamalar:</span><br />
+          {'  '}<span className="h" style={{ display: 'inline-block', width: '22ch' }}>robot sound [on|off]</span><span>8-bit tovushlarni yoqish/o‘chirish</span><br />
+          {'  '}<span className="h" style={{ display: 'inline-block', width: '22ch' }}>robot quiet / talk</span><span>Maslahatlarni to‘xtatish yoki yoqish</span><br />
+          {'  '}<span className="h" style={{ display: 'inline-block', width: '22ch' }}>robot off / on</span><span>Robotni yashirish yoki ko‘rsatish</span>
+        </>
+      )])
+      return true
+    }
+
+    if (['dance', 'hop', 'sleep', 'wake', 'knock', 'follow', 'stop'].includes(sub)) {
+      window.dispatchEvent(new CustomEvent('robot-term-action', { detail: { action: sub } }))
+      const notices = {
+        dance: 'Rootik ritmik raqsga tushmoqda...',
+        hop: 'Rootik quvonch bilan baland sakradi!',
+        sleep: 'Rootik uxlashga yotdi. Zzz...',
+        wake: 'Rootik uyqudan turdi!',
+        knock: 'Rootik oynani taqillatdi!',
+        follow: 'Rootik kursorga ergashish holatini o‘zgartirdi.',
+        stop: 'Harakat to‘xtatildi.'
+      }
+      addHistory([echoLine, msg(<><span className="u">[+]</span> {notices[sub]}</>)])
+      return true
+    }
+
+    if (sub === 'sound') {
+      const next = opt === 'on' ? true : opt === 'off' ? false : !getSoundPref()
+      setSoundPref(next)
+      addHistory([echoLine, msg(<><span className="u">[+]</span> Robot tovushlari: {next ? 'yoqildi' : 'o‘chirildi'}.</>)])
+      return true
+    }
+
+    const map = {
+      on: ['hidden', false, 'Robot qaytdi (faqat kompyuter ekranida ko‘rinadi)'],
+      off: ['hidden', true, 'Robot yashirildi. Qaytarish: robot on'],
+      quiet: ['quiet', true, 'Robot endi o‘zi gapirmaydi (bosilsa, yo‘riqnoma ochiladi)'],
+      talk: ['quiet', false, 'Robot yana maslahat beradi']
+    }
+    if (map[sub]) {
+      setRobotPref(map[sub][0], map[sub][1])
+      addHistory([echoLine, msg(<><span className="u">[+]</span> {map[sub][2]}</>)])
+      return true
+    }
+
+    addHistory([echoLine, msg(<><span className="k">robot:</span> noma’lum parametr: <span className="h">{sub}</span>. Yordam: <span className="h">robot help</span></>)])
     return true
   }
 
